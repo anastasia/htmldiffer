@@ -95,36 +95,41 @@ def wrap_text(diff_type, text_list):
     return ''.join(outcome)
 
 def html2list(x, b=0):
-    rx = re.compile('\n|\t|\r|\s{2}')
+    rx = re.compile('\n|\t|\r')
+    x = rx.sub('', x)
     mode = 'char'
     cur = ''
     out = []
-    x = rx.sub('', x)
-
+    # 1. treat <style>..</style> as one string
+    # 2. treat <script>..</script> as one string
+    tag_exception = False
     for c in x:
         if mode == 'tag':
+            cur += c
             if c == '>':
-                if b:
-                    cur += ']'
-                else:
-                    cur += c
-                out.append(cur); cur = ''; mode = 'char'
-            else:
-                cur += c
+                if ('</style>' in cur) or ('</script>' in cur):
+                    out.append(cur)
+                    cur = ''
+                    tag_exception = False
+                elif ('<style' in cur) or ('<script' in cur):
+                    tag_exception = True
+                if not tag_exception:
+                    out.append(cur)
+                    cur = ''
+                    mode = 'char'
         elif mode == 'char':
             if c == '<':
+                # clear out string collected so far
                 out.append(cur)
-                if b:
-                    cur = '['
-                else:
-                    cur = c
+                cur = c
                 mode = 'tag'
-            elif c in string.whitespace:
-                out.append(cur+c); cur = ''
+            elif c == ' ':
+                out.append(cur+c)
+                cur = ''
             else:
                 cur += c
-    out.append(cur)
-    return filter(lambda x: x is not '', out)
+
+    return filter(lambda x: x is not '' and x is not ' ', out)
 
 if __name__ == '__main__':
     import sys
