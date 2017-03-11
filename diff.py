@@ -8,6 +8,17 @@ __version__ = '0.22'
 
 import difflib, string, re
 
+style_string_hack = """<style>
+    span.diff_insert {
+        background-color: #a0ffa0 !important;
+        z-index: 100000;
+    }
+    span.diff_delete {
+        background-color: #ffecec !important;
+        z-index: 100000;
+    }
+</style>"""
+
 def diff_tag(diff_type, text):
     if is_tag(text):
         # print "is tag:", text
@@ -25,37 +36,39 @@ def is_div(x):
     return x[0:4] == "<div" and x[-6:] == "</div>"
 
 def text_diff(a, b):
-    """Takes in strings a and b and returns a human-readable HTML diff."""
+    """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-    out = []
+    out = [[], [], []]
     a, b = html2list(a), html2list(b)
     try: # autojunk can cause malformed HTML, but also speeds up processing.
         s = difflib.SequenceMatcher(None, a, b, autojunk=False)
     except TypeError:
         s = difflib.SequenceMatcher(None, a, b)
     for e in s.get_opcodes():
-        import ipdb; ipdb.set_trace()
         old_el = a[e[1]:e[2]]
         new_el = b[e[3]:e[4]]
-        if e[0] == "replace" or e[0] == "insert":
-            out.append(wrap_text("insert", new_el))
+        if e[0] == "replace":
+            deletion = wrap_text("delete", old_el)
+            insertion = wrap_text("insert", new_el)
+            out[0].append(deletion)
+            out[1].append(insertion)
+            out[2].append(deletion + insertion)
         elif e[0] == "delete":
-            out.append(wrap_text("delete", old_el))
+            out[0].append(wrap_text("delete", old_el))
+            out[2].append(wrap_text("delete", old_el))
+        elif e[0] == "insert":
+            out[1].append(wrap_text("insert", new_el))
+            out[2].append(wrap_text("insert", new_el))
         elif e[0] == "equal":
-            out.append(''.join(new_el))
+            out[0].append(''.join(new_el))
+            out[1].append(''.join(new_el))
+            out[2].append(''.join(new_el))
         else:
             raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
-    out.append("""<style>
-        span.diff_insert {
-            background-color: #a0ffa0 !important;
-            z-index: 100000;
-        }
-        span.diff_delete {
-            background-color: red !important;
-            z-index: 100000;
-        }
-    </style>""")
-    return ''.join(out)
+    out[0].append(style_string_hack)
+    out[1].append(style_string_hack)
+    out[2].append(style_string_hack)
+    return (''.join(out[0]), ''.join(out[1]), ''.join(out[2]))
 
 def is_whitelisted_tag(x):
     whitelisted_tags = ["<img", "<input"]
@@ -80,8 +93,6 @@ def wrap_text(diff_type, text_list):
             just_text += el
         idx += 1
     return ''.join(outcome)
-
-
 
 def html2list(x, b=0):
     rx = re.compile('\n|\t|\r|\s{2}')
