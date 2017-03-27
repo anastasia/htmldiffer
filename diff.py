@@ -8,17 +8,6 @@ __version__ = '0.22'
 
 import difflib, string, re
 
-style_string_hack = """<style>
-    span.diff_insert {
-        background-color: #a0ffa0 !important;
-        z-index: 100000;
-    }
-    span.diff_delete {
-        background-color: #ffecec !important;
-        z-index: 100000;
-    }
-</style>"""
-
 def diff_tag(diff_type, text):
     if is_tag(text):
         # print "is tag:", text
@@ -39,7 +28,7 @@ def text_diff(a, b):
     """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
     out = [[], [], []]
-    a, b = html2list(a), html2list(b)
+    a, b = convert_to_clean_list(a), convert_to_clean_list(b)
     try: # autojunk can cause malformed HTML, but also speeds up processing.
         s = difflib.SequenceMatcher(None, a, b, autojunk=False)
     except TypeError:
@@ -65,9 +54,6 @@ def text_diff(a, b):
             out[2].append(''.join(new_el))
         else:
             raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
-    out[0].append(style_string_hack)
-    out[1].append(style_string_hack)
-    out[2].append(style_string_hack)
     return (''.join(out[0]), ''.join(out[1]), ''.join(out[2]))
 
 def is_whitelisted_tag(x):
@@ -107,11 +93,11 @@ def html2list(x, b=0):
         if mode == 'tag':
             cur += c
             if c == '>':
-                if ('</style>' in cur) or ('</script>' in cur):
+                if ('</head' in cur):
                     out.append(cur)
                     cur = ''
                     tag_exception = False
-                elif ('<style' in cur) or ('<script' in cur):
+                elif ('<head' in cur):
                     tag_exception = True
                 if not tag_exception:
                     out.append(cur)
@@ -130,6 +116,25 @@ def html2list(x, b=0):
                 cur += c
 
     return filter(lambda x: x is not '' and x is not ' ', out)
+
+def convert_to_clean_list(html_string):
+    a = html2list(html_string)
+    return add_style_collapse_head(a)
+
+def add_style_collapse_head(html_list):
+    new_html_list = []
+    style_string_hack = "<style>span.diff_insert {background-color: #a0ffa0 !important; z-index: 100000;} span.diff_delete {background-color: #ffecec !important; z-index: 100000; }</style>"
+    for idx, x in enumerate(html_list):
+        if "</head>" in x:
+            break
+    x_parts = x.split("</head>")
+    new_head_string = "".join(html_list[0:idx-1]) + x_parts[0] + style_string_hack + x_parts[1]
+    new_html_list.append(new_head_string)
+
+    for y in html_list[idx+1:]:
+        new_html_list.append(y)
+
+    return new_html_list
 
 if __name__ == '__main__':
     import sys
