@@ -80,29 +80,20 @@ def wrap_text(diff_type, text_list):
         idx += 1
     return ''.join(outcome)
 
-def html2list(x, b=0):
+def html2list(html_string, b=0):
     rx = re.compile('\n|\t|\r')
-    x = rx.sub('', x)
+    html_string = rx.sub('', html_string)
     mode = 'char'
     cur = ''
     out = []
-    # 1. treat <style>..</style> as one string
-    # 2. treat <script>..</script> as one string
-    tag_exception = False
-    for c in x:
+
+    for c in html_string:
         if mode == 'tag':
             cur += c
             if c == '>':
-                if ('</head' in cur):
-                    out.append(cur)
-                    cur = ''
-                    tag_exception = False
-                elif ('<head' in cur):
-                    tag_exception = True
-                if not tag_exception:
-                    out.append(cur)
-                    cur = ''
-                    mode = 'char'
+                out.append(cur)
+                cur = ''
+                mode = 'char'
         elif mode == 'char':
             if c == '<':
                 # clear out string collected so far
@@ -115,7 +106,22 @@ def html2list(x, b=0):
             else:
                 cur += c
 
-    return filter(lambda x: x is not '' and x is not ' ', out)
+
+    out_without_spaces = filter(lambda el: el is not '' and el is not ' ', out)
+    out_with_the_head = []
+
+    # treat <head>:</head> as one string (everything up to head tag close)
+    # so that it's easier to insert style
+    for idx, x in enumerate(out_without_spaces):
+        if "</head>" in x:
+            break
+
+    head = "".join(out_without_spaces[0:idx])
+    out_with_the_head.append(head)
+    for idx2, x2 in enumerate(out_without_spaces[idx:]):
+        out_with_the_head.append(x2)
+
+    return out_with_the_head
 
 def convert_to_clean_list(html_string):
     a = html2list(html_string)
