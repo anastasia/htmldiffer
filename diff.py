@@ -10,10 +10,9 @@ import difflib, string, re
 
 def diff_tag(diff_type, text):
     if is_tag(text):
-        # print "is tag:", text
-        return "<span class=diff_%s>%s</span>" % (diff_type, text)
+        return '<span class="diff_%s">%s</span>' % (diff_type, text)
     else:
-        return "<span class=diff_%s>%s</span>" % (diff_type, text)
+        return '<span class="diff_%s">%s</span>' % (diff_type, text)
 
 def is_tag(x):
     return x[0] == "<" and x[-1] == ">"
