@@ -9,12 +9,11 @@ __version__ = '0.22'
 import difflib, string, re
 
 def diff_tag(diff_type, text):
-    if is_tag(text):
-        return '<span class="diff_%s">%s</span>' % (diff_type, text)
-    else:
-        return '<span class="diff_%s">%s</span>' % (diff_type, text)
+    return '<span class="diff_%s">%s</span>' % (diff_type, text)
 
 def is_tag(x):
+    if not len(x):
+        return False
     return x[0] == "<" and x[-1] == ">"
 
 def is_text(x):
@@ -26,34 +25,44 @@ def is_div(x):
 def text_diff(a, b):
     """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
+    a, b = html2list(a), html2list(b)
+    a, b = add_style_str(a), add_style_str(b)
+
     out = [[], [], []]
-    a, b = convert_to_clean_list(a), convert_to_clean_list(b)
-    try: # autojunk can cause malformed HTML, but also speeds up processing.
+    try:
+        # autojunk can cause malformed HTML, but also speeds up processing.
         s = difflib.SequenceMatcher(None, a, b, autojunk=False)
     except TypeError:
         s = difflib.SequenceMatcher(None, a, b)
+
     for e in s.get_opcodes():
         old_el = a[e[1]:e[2]]
         new_el = b[e[3]:e[4]]
         if e[0] == "replace":
             deletion = wrap_text("delete", old_el)
             insertion = wrap_text("insert", new_el)
-            out[0].append(deletion)
-            out[1].append(insertion)
-            out[2].append(deletion + insertion)
+            append_text(out, deleted=deletion, inserted=insertion, both=deletion+insertion)
         elif e[0] == "delete":
-            out[0].append(wrap_text("delete", old_el))
-            out[2].append(wrap_text("delete", old_el))
+            deletion = wrap_text("delete", old_el)
+            append_text(out, deleted=deletion, inserted=None, both=deleted)
         elif e[0] == "insert":
-            out[1].append(wrap_text("insert", new_el))
-            out[2].append(wrap_text("insert", new_el))
+            insertion = wrap_text("insert", new_el)
+            append_text(out, deleted=None, inserted=insertion, both=insertion)
         elif e[0] == "equal":
-            out[0].append(''.join(new_el))
-            out[1].append(''.join(new_el))
-            out[2].append(''.join(new_el))
+            no_change = ''.join(new_el)
+            append_text(out, deleted=no_change, inserted=no_change, both=no_change)
         else:
             raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
+
     return (''.join(out[0]), ''.join(out[1]), ''.join(out[2]))
+
+def append_text(out, deleted=None, inserted=None, both=None):
+    if deleted:
+        out[0].append(deleted)
+    if inserted:
+        out[1].append(inserted)
+    if both:
+        out[2].append(both)
 
 def is_whitelisted_tag(x):
     whitelisted_tags = ["<img", "<input"]
@@ -122,23 +131,10 @@ def html2list(html_string, b=0):
 
     return out_with_the_head
 
-def convert_to_clean_list(html_string):
-    a = html2list(html_string)
-    return add_style_collapse_head(a)
-
-def add_style_collapse_head(html_list):
-    new_html_list = []
-    style_string_hack = "<style>span.diff_insert {background-color: #a0ffa0 !important; z-index: 100000;} span.diff_delete {background-color: #ffecec !important; z-index: 100000; }</style>"
-    for idx, x in enumerate(html_list):
-        if "</head>" in x:
-            break
-    x_parts = x.split("</head>")
-    new_head_string = "".join(html_list[0:idx-1]) + x_parts[0] + style_string_hack + x_parts[1]
-    new_html_list.append(new_head_string)
-
-    for y in html_list[idx+1:]:
-        new_html_list.append(y)
-
+def add_style_str(html_list, style_str=None):
+    if not style_str:
+        style_str = "<style>span.diff_insert {background-color: #a0ffa0;} span.diff_delete {text-decoration: line-through;}</style>"
+    new_html_list = [html_list[0] + style_str + html_list[1]] + html_list[2:]
     return new_html_list
 
 if __name__ == '__main__':
