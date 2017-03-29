@@ -47,7 +47,7 @@ def text_diff(a, b):
             append_text(out, deleted=deletion, inserted=insertion, both=deletion+insertion)
         elif e[0] == "delete":
             deletion = wrap_text("delete", old_el)
-            append_text(out, deleted=deletion, inserted=None, both=deleted)
+            append_text(out, deleted=deletion, inserted=None, both=deletion)
         elif e[0] == "insert":
             insertion = wrap_text("insert", new_el)
             append_text(out, deleted=None, inserted=insertion, both=insertion)
