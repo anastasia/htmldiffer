@@ -19,7 +19,7 @@ class TestDiffMethods(unittest.TestCase):
         # TODO: make sure that a space before text does not make a difference in html, ever
         self.assertTrue("test <b>" in new_html_string)
         self.assertFalse("<div> test " in new_html_string)
-        self.assertTrue("<div>test " in new_html_string)
+        self.assertTrue("test <b> test</b>" in new_html_string)
 
         new_html_list = html2list(new_html_string)
         self.assertEqual(new_html_list, html_list)
