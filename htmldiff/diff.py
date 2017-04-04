@@ -10,6 +10,9 @@ import difflib, string, re
 
 def diff_tag(diff_type, text):
     return '<span class="diff_%s">%s</span>' % (diff_type, text)
+    # if is_tag(text):
+    # else:
+    #     return '<span class="diff_%s">%s</span>' % (diff_type, text)
 
 def is_tag(x):
     if not len(x):
@@ -44,7 +47,7 @@ def text_diff(a, b):
             append_text(out, deleted=deletion, inserted=insertion, both=deletion+insertion)
         elif e[0] == "delete":
             deletion = wrap_text("delete", old_el)
-            append_text(out, deleted=deletion, inserted=None, both=deleted)
+            append_text(out, deleted=deletion, inserted=None, both=deletion)
         elif e[0] == "insert":
             insertion = wrap_text("insert", new_el)
             append_text(out, deleted=None, inserted=insertion, both=insertion)
@@ -89,8 +92,8 @@ def wrap_text(diff_type, text_list):
     return ''.join(outcome)
 
 def html2list(html_string, b=0):
-    rx = re.compile('\n|\t|\r')
-    html_string = rx.sub('', html_string)
+    # rx = re.compile('\n|\t|\r')
+    # html_string = rx.sub('', html_string)
     mode = 'char'
     cur = ''
     out = []
@@ -115,18 +118,19 @@ def html2list(html_string, b=0):
                 cur += c
 
 
-    out_without_spaces = filter(lambda el: el is not '' and el is not ' ', out)
+    # out_without_spaces = filter(lambda el: el is not '' and el is not ' ', out)
     out_with_the_head = []
 
     # treat <head>:</head> as one string (everything up to head tag close)
-    # so that it's easier to insert style
-    for idx, x in enumerate(out_without_spaces):
+    # so that it's easier to insert style. also checking head for changes is not necessary
+
+    for idx, x in enumerate(out):
         if "</head>" in x:
             break
 
-    head = "".join(out_without_spaces[0:idx])
+    head = "".join(out[0:idx])
     out_with_the_head.append(head)
-    for idx2, x2 in enumerate(out_without_spaces[idx:]):
+    for idx2, x2 in enumerate(out[idx:]):
         out_with_the_head.append(x2)
 
     return out_with_the_head
