@@ -1,6 +1,6 @@
 import unittest
 import re
-from diff import *
+from htmldiff.diff import *
 from fixtures import html_str, html_different_str, img_tag, div_tag
 
 class TestDiffMethods(unittest.TestCase):
