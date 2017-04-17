@@ -8,6 +8,7 @@ __version__ = '0.22'
 
 import difflib, string, re
 
+whitelisted_tags = ["<img ", "<input "]
 def diff_tag(diff_type, text):
     return '<span class="diff_%s">%s</span>' % (diff_type, text)
     # if is_tag(text):
@@ -25,13 +26,17 @@ def is_text(x):
 def is_div(x):
     return x[0:4] == "<div" and x[-6:] == "</div>"
 
-def text_diff(a, b):
+def text_diff(a, b, ignore_head_changes=True, add_style=True, style_str=None):
     """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-    a, b = html2list(a), html2list(b)
-    a, b = add_style_str(a), add_style_str(b)
+    a, b = html2list(a, ignore_head_changes=ignore_head_changes), html2list(b, ignore_head_changes=ignore_head_changes)
+    if add_style:
+        a, b = add_style_str(a, style_str=style_str), add_style_str(b, style_str=style_str)
 
     out = [[], [], []]
+    if ignore_head_changes:
+        """append head element with no change"""
+        append_text(out, deleted=a.pop(0), inserted=b.pop(0), both=b[0])
     try:
         # autojunk can cause malformed HTML, but also speeds up processing.
         s = difflib.SequenceMatcher(None, a, b, autojunk=False)
@@ -68,30 +73,49 @@ def append_text(out, deleted=None, inserted=None, both=None):
         out[2].append(both)
 
 def is_whitelisted_tag(x):
-    whitelisted_tags = ["<img", "<input"]
     for tag in whitelisted_tags:
         if tag in x:
             return True
     return False
 
+def is_open_script_tag(x):
+    if "<script " in x:
+        return True
+    return False
+
+def is_closed_script_tag(x):
+    if "<\script " in x:
+        return True
+    return False
+
 def wrap_text(diff_type, text_list):
     idx, just_text, outcome = [0, '', []]
+    joined = ''.join(text_list)
+    script_text = ''
+
+    if joined.isspace():
+        return joined
+
     while idx < len(text_list):
+        whitelisted = False
+
         el = text_list[idx]
-        if is_tag(el):
-            if len(just_text):
-                outcome.append(diff_tag(diff_type, just_text))
-                just_text = ''
-            if is_whitelisted_tag(el):
-                outcome.append(diff_tag(diff_type, just_text))
-            else:
+
+        if is_tag(el) or el.isspace() or el == '':
+            for tag in whitelisted_tags:
+                if tag in el:
+                    outcome.append(diff_tag(diff_type, el))
+                    whitelisted = True
+                    break
+            if not whitelisted:
                 outcome.append(el)
         else:
-            just_text += el
+            outcome.append(diff_tag(diff_type, el))
         idx += 1
+
     return ''.join(outcome)
 
-def html2list(html_string, b=0):
+def html2list(html_string, ignore_head_changes=False, b=0):
     # rx = re.compile('\n|\t|\r')
     # html_string = rx.sub('', html_string)
     mode = 'char'
@@ -117,23 +141,50 @@ def html2list(html_string, b=0):
             else:
                 cur += c
 
-
     # out_without_spaces = filter(lambda el: el is not '' and el is not ' ', out)
-    out_with_the_head = []
 
-    # treat <head>:</head> as one string (everything up to head tag close)
-    # so that it's easier to insert style. also checking head for changes is not necessary
+    if ignore_head_changes:
+        # treat <head>:</head> as one string (everything up to head tag close)
+        # so that it's easier to insert style. also checking head for changes is not necessary
 
-    for idx, x in enumerate(out):
-        if "</head>" in x:
-            break
+        for idx, x in enumerate(out):
+            if "</head>" in x:
+                break
 
-    head = "".join(out[0:idx])
-    out_with_the_head.append(head)
-    for idx2, x2 in enumerate(out[idx:]):
-        out_with_the_head.append(x2)
+        out_with_the_head = []
+        out_with_the_head.append("".join(out[0:idx+1]))
+        for idx2, x in enumerate(out[idx+1:]):
+            out_with_the_head.append(x)
+        cleaned = [out_with_the_head.pop(0)]
+        out = out_with_the_head
+    else:
+        cleaned = []
 
-    return out_with_the_head
+    blacklisted_type = None
+    blacklisted_string = ""
+
+    for x in out:
+        if not blacklisted_type:
+            if x[0:7] == "<script":
+                blacklisted_type = "script"
+                blacklisted_string += x
+            elif x[0:6] == "<style":
+                blacklisted_type = "style"
+                blacklisted_string += x
+            elif x[0:9] == "<noscript":
+                blacklisted_type = "noscript"
+                blacklisted_string += x
+            else:
+                cleaned.append(x)
+        else:
+            if x != "</%s>" % blacklisted_type:
+                blacklisted_string += x
+            else:
+                blacklisted_string += x
+                cleaned.append(blacklisted_string)
+                blacklisted_type = None
+                blacklisted_string = ""
+    return cleaned
 
 def add_style_str(html_list, style_str=None):
     if not style_str:
