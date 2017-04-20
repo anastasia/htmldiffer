@@ -34,8 +34,9 @@ def text_diff(a, b):
     for e in s.get_opcodes():
         old_el = a[e[1]:e[2]]
         new_el = b[e[3]:e[4]]
-        if e[0] == "replace":
-            # check for excluded strings
+        if diff_type == "equal" or no_changes_exist(old_el, new_el):
+            append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
+        elif e[0] == "replace":
             deletion = wrap_text("delete", old_el)
             insertion = wrap_text("insert", new_el)
             append_text(out, deleted=deletion, inserted=insertion, both=deletion+insertion)
@@ -45,13 +46,22 @@ def text_diff(a, b):
         elif e[0] == "insert":
             insertion = wrap_text("insert", new_el)
             append_text(out, deleted=None, inserted=insertion, both=insertion)
-        elif e[0] == "equal":
-            no_change = ''.join(new_el)
-            append_text(out, deleted=no_change, inserted=no_change, both=no_change)
         else:
             raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
 
     return (''.join(out[0]), ''.join(out[1]), ''.join(out[2]))
+
+def no_changes_exist(old_el, new_el):
+    old_el_str = ''.join(old_el)
+    new_el_str = ''.join(new_el)
+
+    for s in settings.EXCLUDE_STRINGS_A:
+        old_el_str = ''.join(old_el_str.split(s))
+
+    for s in settings.EXCLUDE_STRINGS_B:
+        new_el_str = ''.join(new_el_str.split(s))
+
+    return old_el_str == new_el_str
 
 def append_text(out, deleted=None, inserted=None, both=None):
     if deleted:

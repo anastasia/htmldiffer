@@ -5,4 +5,5 @@ CUSTOM_STYLE_STR = ""
 WHITELISTED_TAGS = ["img", "input"]
 BLACKLISTED_TAGS = ["head", "script", "style", "noscript"]
 
-EXCLUDE_STRINGS = [""]
+EXCLUDE_STRINGS_A = [""]
+EXCLUDE_STRINGS_B = [""]
