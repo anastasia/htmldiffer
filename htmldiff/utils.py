@@ -33,14 +33,13 @@ def html2list(html_string, b=0):
     for x in out:
         if not blacklisted_tag:
             for tag in settings.BLACKLISTED_TAGS:
-                if x[0:len(tag)+1] == "<{0}".format(tag):
+                if verified_blacklisted_tag(x, tag):
                     blacklisted_tag = tag
                     blacklisted_string += x
                     break
-            else:
+            if not blacklisted_tag:
                 cleaned.append(x)
         else:
-            # print "else", x, "</%s>" % blacklisted_tag
             if x == "</{0}>".format(blacklisted_tag):
                 blacklisted_string += x
                 cleaned.append(blacklisted_string)
@@ -48,9 +47,17 @@ def html2list(html_string, b=0):
                 blacklisted_string = ""
             else:
                 blacklisted_string += x
-                # print blacklisted_string
 
     return cleaned
+
+def verified_blacklisted_tag(x, tag):
+    """
+    check for '<' + blacklisted_tag +  ' ' or '>'
+    as in: <head> or <head ...> (should not match <header if checking for <head)
+    """
+    initial = x[0:len(tag) + 1 + 1]
+    blacklisted_head = "<{0}".format(tag)
+    return initial == (blacklisted_head + " ") or initial == (blacklisted_head + ">")
 
 def add_style_str(html_list):
     style_str = settings.CUSTOM_STYLE_STR if settings.CUSTOM_STYLE_STR else settings.STYLE_STR
