@@ -34,7 +34,7 @@ def text_diff(a, b):
     for e in s.get_opcodes():
         old_el = a[e[1]:e[2]]
         new_el = b[e[3]:e[4]]
-        if diff_type == "equal" or no_changes_exist(old_el, new_el):
+        if e[0] == "equal" or no_changes_exist(old_el, new_el):
             append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
         elif e[0] == "replace":
             deletion = wrap_text("delete", old_el)
@@ -54,12 +54,12 @@ def text_diff(a, b):
 def no_changes_exist(old_el, new_el):
     old_el_str = ''.join(old_el)
     new_el_str = ''.join(new_el)
-
-    for s in settings.EXCLUDE_STRINGS_A:
-        old_el_str = ''.join(old_el_str.split(s))
-
-    for s in settings.EXCLUDE_STRINGS_B:
-        new_el_str = ''.join(new_el_str.split(s))
+    if len(settings.EXCLUDE_STRINGS_A):
+        for s in settings.EXCLUDE_STRINGS_A:
+            old_el_str = ''.join(old_el_str.split(s))
+    if len(settings.EXCLUDE_STRINGS_A):
+        for s in settings.EXCLUDE_STRINGS_B:
+            new_el_str = ''.join(new_el_str.split(s))
 
     return old_el_str == new_el_str
 
