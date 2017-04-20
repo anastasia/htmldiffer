@@ -17,14 +17,6 @@ def text_diff(a, b):
 
     out = [[], [], []]
 
-    if settings.IGNORE_HEAD_CHANGES:
-        """
-        append head element with no change if head exists
-        """
-        # a hacky hack that ignores the myriad of edgecases that exist
-        if ("<head " in a[0] and "</head>" in a[0]) and ("<head " in b[0] and "</head>" in b[0]):
-            append_text(out, deleted=a.pop(0), inserted=b.pop(0), both=b[0])
-
     try:
         # autojunk can cause malformed HTML, but also speeds up processing.
         s = difflib.SequenceMatcher(None, a, b, autojunk=False)
