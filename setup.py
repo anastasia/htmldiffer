@@ -18,7 +18,6 @@ setup(
     keywords = "html diff",
     url = "http://www.aaronsw.com/2002/diff",
     packages=['htmldiff', 'tests'],
-    long_description=read('README'),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
