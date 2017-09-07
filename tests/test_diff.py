@@ -7,10 +7,14 @@ class TestDiffMethods(unittest.TestCase):
     def test_wrap_text(self):
         list_to_wrap = ['<a>', 'b', 'c ', '</a>']
         wrapped_str = wrap_text('insert', list_to_wrap)
+        self.assertEqual(wrapped_str, '<a><span class="diff_insert">b</span><span class="diff_insert">c </span></a>')
 
         list_to_wrap = ['<a>', 'b is for boy', '<div>', 'c is for cat','</div>', 'd is for dongle ', '</a>']
         wrapped_str = wrap_text('insert', list_to_wrap)
-        self.assertEqual(wrapped_str, '<a><span class="diff_insert">b is for boy</span><div><span class="diff_insert">c is for cat</span></div><span class="diff_insert">d is for dongle </span></a>')
+        self.assertEqual(wrapped_str, '<a><span class="diff_insert">'
+                                      'b is for boy</span><div><span class="diff_insert">'
+                                      'c is for cat</span></div><span class="diff_insert">'
+                                      'd is for dongle </span></a>')
 
     def test_add_style_str(self):
         html_list = html2list(html_str)
@@ -22,8 +26,8 @@ class TestDiffMethods(unittest.TestCase):
         self.assertTrue('span.diff_insert' in new_html_string)
 
         html_list = html2list(html_str)
-        settings.CUSTOM_STYLE_STR = "<style>span.diff_insert {text-decoration: underline; color: green;} span.diff_delete {color: red;}</style>"
-        custom_styled_list = add_style_str(html_list)
+        custom_style_str = "<style>span.diff_insert {text-decoration: underline; color: green;} span.diff_delete {color: red;}</style>"
+        custom_styled_list = add_style_str(html_list, custom_style_str=custom_style_str)
         custom_styled_string = "".join(custom_styled_list)
         self.assertTrue("background-color" not in custom_styled_string)
         self.assertTrue(settings.CUSTOM_STYLE_STR in custom_styled_string)

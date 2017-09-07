@@ -1,8 +1,22 @@
 from htmldiff import settings
 
-def html2list(html_string, b=0):
-    # rx = re.compile('\n|\t|\r')
-    # html_string = rx.sub('', html_string)
+
+def html2list(html_string):
+    """
+    :param html_string: any ol' html string you've got
+    :return: list of elements, making sure not to break up open tags (even if they contain attributes)
+    Note that any blacklisted tag will not be broken up
+    Example:
+        html_str = "<h1>This is a simple header</h1>"
+        result = html2list(html_str)
+        result == ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>']
+
+    Blacklisted tag example:
+        settings.BLACKLISTED_TAGS = ['head']
+        html_str = "<head><title>Page Title</title></head>"
+        result = html2list(html_str)
+        result == ['<head><title>Page Title</title></head>']
+    """
     mode = 'char'
     cur = ''
     out = []
@@ -17,7 +31,8 @@ def html2list(html_string, b=0):
         elif mode == 'char':
             if c == '<':
                 # clear out string collected so far
-                out.append(cur)
+                if cur != "":
+                    out.append(cur)
                 cur = c
                 mode = 'tag'
             elif c == ' ':
@@ -50,6 +65,7 @@ def html2list(html_string, b=0):
 
     return cleaned
 
+
 def verified_blacklisted_tag(x, tag):
     """
     check for '<' + blacklisted_tag +  ' ' or '>'
@@ -59,8 +75,9 @@ def verified_blacklisted_tag(x, tag):
     blacklisted_head = "<{0}".format(tag)
     return initial == (blacklisted_head + " ") or initial == (blacklisted_head + ">")
 
-def add_style_str(html_list):
-    style_str = settings.CUSTOM_STYLE_STR if settings.CUSTOM_STYLE_STR else settings.STYLE_STR
+
+def add_style_str(html_list, custom_style_str=None):
+    style_str = custom_style_str if custom_style_str else settings.STYLE_STR
 
     for idx,el in enumerate(html_list):
         if "</head>" in el:
@@ -70,20 +87,24 @@ def add_style_str(html_list):
 
     return html_list
 
+
 def is_comment(text):
     if "<!--" in text:
         return True
     return False
+
 
 def is_closing_tag(text):
     if '</' in text:
         return True
     return False
 
+
 def is_ignorable(text):
     if is_comment(text) or is_closing_tag(text) or text.isspace():
         return True
     return False
+
 
 def is_whitelisted_tag(x):
     for tag in settings.WHITELISTED_TAGS:
@@ -91,23 +112,28 @@ def is_whitelisted_tag(x):
             return True
     return False
 
+
 def is_open_script_tag(x):
     if "<script " in x:
         return True
     return False
+
 
 def is_closed_script_tag(x):
     if "<\script " in x:
         return True
     return False
 
+
 def is_tag(x):
     if not len(x):
         return False
     return x[0] == "<" and x[-1] == ">"
 
+
 def is_text(x):
     return ("<" and ">") not in x
+
 
 def is_div(x):
     return x[0:4] == "<div" and x[-6:] == "</div>"

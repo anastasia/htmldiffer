@@ -1,6 +1,6 @@
-import difflib, string, re
-from htmldiff import settings
+import difflib
 from htmldiff.utils import *
+
 
 def diff_tag(diff_type, text):
     return '<span class="diff_%s">%s</span>' % (diff_type, text)
@@ -8,12 +8,13 @@ def diff_tag(diff_type, text):
     # else:
     #     return '<span class="diff_%s">%s</span>' % (diff_type, text)
 
-def text_diff(a, b):
+
+def text_diff(text_a, text_b, style_str=None):
     """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-    a, b = html2list(a), html2list(b)
+    a, b = html2list(text_a), html2list(text_b)
     if settings.ADD_STYLE:
-        a, b = add_style_str(a), add_style_str(b)
+        a, b = add_style_str(a, custom_style_str=style_str), add_style_str(b, custom_style_str=style_str)
 
     out = [[], [], []]
 
@@ -43,6 +44,7 @@ def text_diff(a, b):
 
     return (''.join(out[0]), ''.join(out[1]), ''.join(out[2]))
 
+
 def no_changes_exist(old_el, new_el):
     old_el_str = ''.join(old_el)
     new_el_str = ''.join(new_el)
@@ -55,6 +57,7 @@ def no_changes_exist(old_el, new_el):
 
     return old_el_str == new_el_str
 
+
 def append_text(out, deleted=None, inserted=None, both=None):
     if deleted:
         out[0].append(deleted)
@@ -63,10 +66,10 @@ def append_text(out, deleted=None, inserted=None, both=None):
     if both:
         out[2].append(both)
 
+
 def wrap_text(diff_type, text_list):
     idx, just_text, outcome = [0, '', []]
     joined = ''.join(text_list)
-    script_text = ''
 
     if joined.isspace():
         return joined

@@ -4,3 +4,4 @@ python:
 
 script:
   - python -m tests.test_diff
+  - python -m tests.test_utils
