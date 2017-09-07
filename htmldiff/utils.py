@@ -1,5 +1,6 @@
 from htmldiff import settings
 
+
 def html2list(html_string):
     """
     :param html_string: any ol' html string you've got
