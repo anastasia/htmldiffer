@@ -1,8 +1,21 @@
 from htmldiff import settings
 
-def html2list(html_string, b=0):
-    # rx = re.compile('\n|\t|\r')
-    # html_string = rx.sub('', html_string)
+def html2list(html_string):
+    """
+    :param html_string: any ol' html string you've got
+    :return: list of elements, making sure not to break up open tags (even if they contain attributes)
+    Note that any blacklisted tag will not be broken up
+    Example:
+        html_str = "<h1>This is a simple header</h1>"
+        result = html2list(html_str)
+        result == ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>']
+
+    Blacklisted tag example:
+        settings.BLACKLISTED_TAGS = ['head']
+        html_str = "<head><title>Page Title</title></head>"
+        result = html2list(html_str)
+        result == ['<head><title>Page Title</title></head>']
+    """
     mode = 'char'
     cur = ''
     out = []
@@ -17,7 +30,8 @@ def html2list(html_string, b=0):
         elif mode == 'char':
             if c == '<':
                 # clear out string collected so far
-                out.append(cur)
+                if cur != "":
+                    out.append(cur)
                 cur = c
                 mode = 'tag'
             elif c == ' ':
