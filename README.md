@@ -26,7 +26,7 @@ $ python diff.py file_one.html file_two.html
 
 ###### How does this work?
 
-htmldiff works by using difflib's [SequenceMatch](https://docs.python.org/3/library/difflib.html#difflib.SequenceMatcher) algorithm. 
+htmldiff works by using difflib's [SequenceMatcher](https://docs.python.org/3/library/difflib.html#difflib.SequenceMatcher) algorithm. 
 The logic is a little bit complex! So let's dive in:
 
 + htmldiff's `text_diff` method ([diff.py](https://github.com/anastasia/htmldiff/blob/develop/htmldiff/diff.py)) calls to htmldiff's [utils.py](https://github.com/anastasia/htmldiff/blob/develop/htmldiff/utils.py)  `html2list` method which iterates through the html string and spits out a list of entities.
@@ -36,7 +36,7 @@ The logic is a little bit complex! So let's dive in:
   + All blacklisted tags will remain unbroken (for instance, since there is no way to see changes in the `<head>` tag right now, we keep the tag and all of its contents as one element)
 
 + `text_diff` calls to utils to add a style string (default lives in settings.py) to the `<head>` of the html (if head tag exists) so that our diff highlights show up
-+ `text_diff` compares the two newly created lists (two, because one is for the old html string and the other is for the new html string) using SequenceMatch, and gets
++ `text_diff` compares the two newly created lists (two, because one is for the old html string and the other is for the new html string) using `SequenceMatcher`, and gets
     a list back describing how A element got to be B element
 + `text_diff` method iterates through that list, calling to `wrap_text` to wrap each element according to its change value
 
