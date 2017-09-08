@@ -1,0 +1,15 @@
+Metadata-Version: 1.2
+Name: htmldiffer
+Version: 0.24
+Summary: HTML diff
+Home-page: https://github.com/anastasia/htmldiff
+Author: Anastasia Aizman
+Author-email: anastasia.aizman@gmail.com
+License: BSD
+Description: UNKNOWN
+Keywords: html diff
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Topic :: Utilities
+Classifier: License :: OSI Approved :: MIT License
+Requires-Python: >=2.7

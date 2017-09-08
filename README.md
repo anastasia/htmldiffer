@@ -4,6 +4,11 @@
 #
 ### To install:
 ```
+pip install htmldiffer
+```
+
+Or
+```
 $ git clone git@github.com:anastasia/htmldiff.git
 $ cd htmldiff
 ```

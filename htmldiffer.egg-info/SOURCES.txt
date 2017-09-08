@@ -1,0 +1,13 @@
+setup.py
+htmldiff/__init__.py
+htmldiff/diff.py
+htmldiff/settings.py
+htmldiff/utils.py
+htmldiffer.egg-info/PKG-INFO
+htmldiffer.egg-info/SOURCES.txt
+htmldiffer.egg-info/dependency_links.txt
+htmldiffer.egg-info/top_level.txt
+tests/__init__.py
+tests/fixtures.py
+tests/test_diff.py
+tests/test_utils.py
