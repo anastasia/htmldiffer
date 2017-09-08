@@ -8,8 +8,8 @@ setup(
     description=("HTML diff"),
     license="BSD",
     keywords="html diff",
-    url="https://github.com/anastasia/htmldiff",
-    packages=['htmldiff', 'tests'],
+    url="https://github.com/anastasia/htmldiffer",
+    packages=['htmldiffer', 'tests'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",

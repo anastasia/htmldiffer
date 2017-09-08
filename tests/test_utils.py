@@ -1,6 +1,6 @@
 import unittest
 from .fixtures import *
-from htmldiff.utils import *
+from htmldiffer.utils import *
 
 
 class TestUtilMethods(unittest.TestCase):

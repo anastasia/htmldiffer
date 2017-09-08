@@ -110,7 +110,7 @@ if __name__ == '__main__':
     try:
         a, b = sys.argv[1:3]
     except ValueError:
-        print("htmldiff: highlight the differences between two html files")
+        print("htmldiffer: highlight the differences between two html files")
         print("usage: " + sys.argv[0] + " a b")
         sys.exit(1)
     d = HTMLDiffer(a, b)

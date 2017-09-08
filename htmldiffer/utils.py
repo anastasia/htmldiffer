@@ -1,4 +1,4 @@
-from htmldiff import settings
+import settings
 
 
 def html2list(html_string):

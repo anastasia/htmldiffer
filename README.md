@@ -29,7 +29,7 @@ That's it!
 
 To do the above in terminal, instead:
 ```
-$ python diff.py file_one.html file_two.html
+$ python htmldiffer file_one.html file_two.html
 ```
 HTMLDiffer will take strings or files.
 
@@ -90,3 +90,9 @@ More complexities! How does `wrap_text` work?
   + all text that is changed should therefore be wrapped by appropriate `span` diff tags.
   + the default whitelisted tags include self-closing tags `<img>` and `<input>` and will therefore be wrapped in `span` diff tags 
  
+
+
+
+***
+
+This repository is a fork off of https://github.com/aaronsw/htmldiff. 

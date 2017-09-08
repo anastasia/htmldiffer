@@ -1,6 +1,6 @@
 import os
 import difflib
-from htmldiff.utils import *
+from utils import *
 
 
 class HTMLDiffer:
@@ -104,15 +104,3 @@ def wrap_text(diff_type, text_list):
         idx += 1
 
     return ''.join(outcome)
-
-if __name__ == '__main__':
-    import sys
-    try:
-        a, b = sys.argv[1:3]
-    except ValueError:
-        print("htmldiff: highlight the differences between two html files")
-        print("usage: " + sys.argv[0] + " a b")
-        sys.exit(1)
-    d = HTMLDiffer(a, b)
-
-    print(d.deleted_diff, d.inserted_diff, d.combined_diff)
