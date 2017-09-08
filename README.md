@@ -1,49 +1,98 @@
-#### Diffing HTML
+## htmldiff
 [![Build Status](https://travis-ci.org/anastasia/htmldiff.svg?branch=develop)](https://travis-ci.org/anastasia/htmldiff)
+#### highlight the differences between two html files
 #
+### To install:
+```
+pip install htmldiffer
+```
 
-
-###### To install:
+Or
 ```
 $ git clone git@github.com:anastasia/htmldiff.git
 $ cd htmldiff
 ```
-If you want to work in python, open a python shell script:
-```
-$ ipython
-```
-Get three html diffs: deleted diff, inserted diff, and a combined diff (of deleted and inserted — this could be confusing to view)
+
+Get three html diffs: deleted diff, inserted diff, and a combined diff (showing both the deleted and inserted highlights)
 ```python
 from htmldiff import diff
 
-deletes_diff, inserts_diff, combined_diff = diff.text_diff(html_string_one, html_string_two)
+d = diff.HTMLDiffer(str_a, str_b)
+# get a string of the HTML with deleted elements highlighted:  
+print d.deleted_diff
+# get a string of the HTML with inserted elements highlighted:
+print d.inserted_diff
+# get a string of the HTML with both deleted and inserted elements highlighted:
+print d.combined_diff
 ```
+That's it! 
 
 To do the above in terminal, instead:
 ```
-$ python diff.py file_one.html file_two.html
+$ python htmldiffer file_one.html file_two.html
+```
+HTMLDiffer will take strings or files.
+
+
+### How does this work?
+
+htmldiff takes a string or a file of html, converts it to string entities[1], then diffs those entities using [SequenceMatcher][seqmatch] 
+and gets deleted, inserted, and combined (deleted and inserted) html, which include spans wrapping the changed text.
+     
+Example:
+```python
+
+old_html = "<h1>This is a simple header</h1>"
+new_html = "<h1>This is a newer, better header</h1>"
+
+d = HTMLDiffer(old_html, new_html)
+d.deleted_diff == "<h1>This is a <span class="diff_delete">simple </span>header</h1>"
+d.inserted_diff == "<h1>This is a <span class="diff_insert">newer, </span><span class="diff_insert">better </span>header</h1>"
+d.combined_diff == "<h1>This is a <span class="diff_delete">simple </span><span class="diff_insert">newer, </span><span class="diff_insert">better </span>header</h1>"
 ```
 
-###### How does this work?
+[1] An entity can be one of several things:
++ A word
++ An opening tag: `<li class="list-element" style="some:style;">`
++ A closing tag: `</li>`
++ A tag that has been whitelisted (self closing tags that you want to highlight changes of are recommended here)
+    + for instance, by default we're whitelisting image tags, so the entity will be: `<img src="some/source.jpg"/>`
++ The entirety of a blacklisted tag (like a script and head tag, since it's difficult to show changes in those, for now)
+    + `<script>The entirety of a script tag will be a single entity</script>`
 
-htmldiff works by using difflib's [SequenceMatcher](https://docs.python.org/3/library/difflib.html#difflib.SequenceMatcher) algorithm. 
-The logic is a little bit complex! So let's dive in:
+In order to maintain the integrity and structure of the original HTML, we don't remove any whitespaces or change the HTML itself in any way, before iterating through and wrapping it with span tags.  
 
-+ htmldiff's `text_diff` method ([diff.py](https://github.com/anastasia/htmldiff/blob/develop/htmldiff/diff.py)) calls to htmldiff's [utils.py](https://github.com/anastasia/htmldiff/blob/develop/htmldiff/utils.py)  `html2list` method which iterates through the html string and spits out a list of entities.
-  + All opening tags will be kept together as an entity 
-      - example: `<li class="list-element" style="some:style;">`
-  + Words remain unbroken
-  + All blacklisted tags will remain unbroken (for instance, since there is no way to see changes in the `<head>` tag right now, we keep the tag and all of its contents as one element)
+[seqmatch]:https://docs.python.org/3/library/difflib.html#difflib.SequenceMatcher
 
-+ `text_diff` calls to utils to add a style string (default lives in settings.py) to the `<head>` of the html (if head tag exists) so that our diff highlights show up
-+ `text_diff` compares the two newly created lists (two, because one is for the old html string and the other is for the new html string) using `SequenceMatcher`, and gets
-    a list back describing how A element got to be B element
-+ `text_diff` method iterates through that list, calling to `wrap_text` to wrap each element according to its change value
+
+### Tell me more
+
++ htmldiff's `diff` method [diff.py][diffpy] 
+`html2list` method which iterates through 
+the html string and spits out a list of entities (see above for explanation). 
+
+[diffpy]:https://github.com/anastasia/htmldiff/blob/develop/htmldiff/diff.py
++ `diff` adds a style string (default lives in settings.py) to the `<head>` of the html (if head tag exists) 
+so that our diff highlights show up
++ `diff` compares the two newly created lists 
+(two — one is for the old html string, one for the new html string) using `SequenceMatcher`, and gets
+    a list back describing (using codes 'replace', 'delete', 'insert', and 'equal'), for each element A how it got to be element B 
++ `diff` method iterates through that list, calling to `wrap_text` to wrap each element according to its change value
 
 More complexities! How does `wrap_text` work?
 + For each element, if the element is not an html tag, it wraps it in a `<span>` tag with a `diff_insert` or `diff_delete` class.
 + If the element is an HTML tag, `wrap_text` will skip the element *unless* the element is in `settings.WHITELISTED_TAGS` list.
-  + HTML `<!-- comments -->` will be read as tags and therefore skipped. 
-  + all text that is changed (as opposed to the tags that surround it) should therefore be wrapped by appropriate `span` diff tags.
-  + the default whitelisted tags include self-closing tags `<img>` and `<input>` 
+   The reason for that is that we don't want to wrap the `<li>` opening tag itself, but the changes within that tag.
+    
+    
+   Things to note:
+  + HTML `<!-- comments -->` will be read as a tag and therefore skipped. 
+  + all text that is changed should therefore be wrapped by appropriate `span` diff tags.
+  + the default whitelisted tags include self-closing tags `<img>` and `<input>` and will therefore be wrapped in `span` diff tags 
  
+
+
+
+***
+
+This repository is a fork off of https://github.com/aaronsw/htmldiff. 

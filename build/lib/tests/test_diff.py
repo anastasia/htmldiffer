@@ -1,7 +1,7 @@
 import unittest
 import tempfile
-from htmldiffer.diff import *
-from htmldiffer import settings
+from htmldiff.diff import *
+from htmldiff import settings
 from .fixtures import *
 
 

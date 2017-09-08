@@ -1,2 +1,4 @@
 *.pyc
 assets/*
+.idea
+htmldiffer.egg-info
