@@ -1,5 +1,5 @@
 import unittest
-from fixtures import *
+from .fixtures import *
 from htmldiff.utils import *
 
 

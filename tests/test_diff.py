@@ -2,7 +2,7 @@ import unittest
 import tempfile
 from htmldiff.diff import *
 from htmldiff import settings
-from fixtures import *
+from .fixtures import *
 
 
 class TestDiffMethods(unittest.TestCase):
@@ -51,11 +51,11 @@ class TestDiffMethods(unittest.TestCase):
 
     def test_differ_with_files(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
-            tmp1.write(html_str)
+            tmp1.write(html_str.encode())
 
         with tempfile.NamedTemporaryFile(delete=False) as tmp2:
 
-            tmp2.write(html_different_str)
+            tmp2.write(html_different_str.encode())
 
         result = HTMLDiffer(tmp1.name, tmp2.name)
 
@@ -65,7 +65,7 @@ class TestDiffMethods(unittest.TestCase):
 
     def test_differ_with_both_string_and_file(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
-            tmp1.write(html_str)
+            tmp1.write(html_str.encode())
 
         result = HTMLDiffer(tmp1.name, html_different_str)
 

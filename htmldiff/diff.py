@@ -49,7 +49,7 @@ class HTMLDiffer:
                 insertion = wrap_text("insert", new_el)
                 append_text(out, deleted=None, inserted=insertion, both=insertion)
             else:
-                raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
+                raise "Um, something's broken. I didn't expect a '" + repr(e[0]) + "'."
 
         return ''.join(out[0]), ''.join(out[1]), ''.join(out[2])
 
@@ -110,9 +110,9 @@ if __name__ == '__main__':
     try:
         a, b = sys.argv[1:3]
     except ValueError:
-        print "htmldiff: highlight the differences between two html files"
-        print "usage: " + sys.argv[0] + " a b"
+        print("htmldiff: highlight the differences between two html files")
+        print("usage: " + sys.argv[0] + " a b")
         sys.exit(1)
-    d = HTMLDiff(a, b)
+    d = HTMLDiffer(a, b)
 
-    print d.deleted_diff, d.inserted_diff, d.combined_diff
+    print(d.deleted_diff, d.inserted_diff, d.combined_diff)
