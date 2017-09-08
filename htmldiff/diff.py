@@ -1,48 +1,61 @@
+import os
 import difflib
 from htmldiff.utils import *
 
 
+class HTMLDiffer:
+    def __init__(self, html_a, html_b):
+        if os.path.isfile(html_a):
+            with open(html_a, "r") as file_a:
+                self.html_a = file_a.read()
+        else:
+            self.html_a = html_a
+        if os.path.isfile(html_b):
+            with open(html_b, "r") as file_b:
+                self.html_b = file_b.read()
+        else:
+            self.html_b = html_b
+
+        self.deleted_diff, self.inserted_diff, self.combined_diff = self.diff()
+
+    def diff(self):
+        """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
+
+        a, b = html2list(self.html_a), html2list(self.html_b)
+        if settings.ADD_STYLE:
+            a, b = add_style_str(a, custom_style_str=settings.STYLE_STR), add_style_str(b, custom_style_str=settings.STYLE_STR)
+
+        out = [[], [], []]
+
+        try:
+            # autojunk can cause malformed HTML, but also speeds up processing.
+            s = difflib.SequenceMatcher(None, a, b, autojunk=False)
+        except TypeError:
+            s = difflib.SequenceMatcher(None, a, b)
+
+        for e in s.get_opcodes():
+            old_el = a[e[1]:e[2]]
+            new_el = b[e[3]:e[4]]
+            if e[0] == "equal" or no_changes_exist(old_el, new_el):
+                append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
+            elif e[0] == "replace":
+                deletion = wrap_text("delete", old_el)
+                insertion = wrap_text("insert", new_el)
+                append_text(out, deleted=deletion, inserted=insertion, both=deletion + insertion)
+            elif e[0] == "delete":
+                deletion = wrap_text("delete", old_el)
+                append_text(out, deleted=deletion, inserted=None, both=deletion)
+            elif e[0] == "insert":
+                insertion = wrap_text("insert", new_el)
+                append_text(out, deleted=None, inserted=insertion, both=insertion)
+            else:
+                raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
+
+        return ''.join(out[0]), ''.join(out[1]), ''.join(out[2])
+
+
 def diff_tag(diff_type, text):
     return '<span class="diff_%s">%s</span>' % (diff_type, text)
-    # if is_tag(text):
-    # else:
-    #     return '<span class="diff_%s">%s</span>' % (diff_type, text)
-
-
-def text_diff(text_a, text_b, style_str=None):
-    """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
-
-    a, b = html2list(text_a), html2list(text_b)
-    if settings.ADD_STYLE:
-        a, b = add_style_str(a, custom_style_str=style_str), add_style_str(b, custom_style_str=style_str)
-
-    out = [[], [], []]
-
-    try:
-        # autojunk can cause malformed HTML, but also speeds up processing.
-        s = difflib.SequenceMatcher(None, a, b, autojunk=False)
-    except TypeError:
-        s = difflib.SequenceMatcher(None, a, b)
-
-    for e in s.get_opcodes():
-        old_el = a[e[1]:e[2]]
-        new_el = b[e[3]:e[4]]
-        if e[0] == "equal" or no_changes_exist(old_el, new_el):
-            append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
-        elif e[0] == "replace":
-            deletion = wrap_text("delete", old_el)
-            insertion = wrap_text("insert", new_el)
-            append_text(out, deleted=deletion, inserted=insertion, both=deletion+insertion)
-        elif e[0] == "delete":
-            deletion = wrap_text("delete", old_el)
-            append_text(out, deleted=deletion, inserted=None, both=deletion)
-        elif e[0] == "insert":
-            insertion = wrap_text("insert", new_el)
-            append_text(out, deleted=None, inserted=insertion, both=insertion)
-        else:
-            raise "Um, something's broken. I didn't expect a '" + `e[0]` + "'."
-
-    return (''.join(out[0]), ''.join(out[1]), ''.join(out[2]))
 
 
 def no_changes_exist(old_el, new_el):
@@ -100,4 +113,6 @@ if __name__ == '__main__':
         print "htmldiff: highlight the differences between two html files"
         print "usage: " + sys.argv[0] + " a b"
         sys.exit(1)
-    print text_diff(open(a).read(), open(b).read())
+    d = HTMLDiff(a, b)
+
+    print d.deleted_diff, d.inserted_diff, d.combined_diff

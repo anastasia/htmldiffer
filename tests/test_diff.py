@@ -1,7 +1,9 @@
 import unittest
+import tempfile
 from htmldiff.diff import *
 from htmldiff import settings
 from fixtures import *
+
 
 class TestDiffMethods(unittest.TestCase):
     def test_wrap_text(self):
@@ -17,6 +19,7 @@ class TestDiffMethods(unittest.TestCase):
                                       'd is for dongle </span></a>')
 
     def test_add_style_str(self):
+        """Test adding style string and custom style string to <head> of the html stirng"""
         html_list = html2list(html_str)
         new_html_list = add_style_str(html_list)
         self.assertNotEqual(new_html_list[1], '</head>')
@@ -32,35 +35,57 @@ class TestDiffMethods(unittest.TestCase):
         self.assertTrue("background-color" not in custom_styled_string)
         self.assertTrue(settings.CUSTOM_STYLE_STR in custom_styled_string)
 
-    def test_text_diff(self):
-        out = text_diff(html_str, html_different_str)
+    def test_differ_with_strings(self):
+        result = HTMLDiffer(html_str, html_different_str)
 
-        # self.assertTrue((len(out[2]) > len(out[1])) and len(out[2]) > len(out[0]))
+        self.assertEqual(result.deleted_diff[-7:], '</html>')
+        self.assertEqual(result.inserted_diff[-7:], '</html>')
+        self.assertEqual(result.combined_diff[-7:], '</html>')
 
-        self.assertEqual(out[0][-7:], '</html>')
-        self.assertEqual(out[1][-7:], '</html>')
-        self.assertEqual(out[2][-7:], '</html>')
+        self.assertTrue('class="diff_delete"' in result.deleted_diff)
+        self.assertTrue('class="diff_insert"' in result.inserted_diff)
+        self.assertTrue('class="diff_insert"' in result.combined_diff and 'class="diff_delete"' in result.combined_diff)
 
-        self.assertTrue('class="diff_delete"' in out[0])
-        self.assertTrue('class="diff_insert"' in out[1])
-        self.assertTrue('class="diff_insert"' in out[2] and 'class="diff_delete"' in out[2])
+        self.assertFalse('class="diff_insert"' in result.deleted_diff)
+        self.assertFalse('class="diff_delete"' in result.inserted_diff)
 
-        self.assertFalse('class="diff_insert"' in out[0])
-        self.assertFalse('class="diff_delete"' in out[1])
+    def test_differ_with_files(self):
+        with tempfile.NamedTemporaryFile(delete=False) as tmp1:
+            tmp1.write(html_str)
+
+        with tempfile.NamedTemporaryFile(delete=False) as tmp2:
+
+            tmp2.write(html_different_str)
+
+        result = HTMLDiffer(tmp1.name, tmp2.name)
+
+        self.assertTrue('class="diff_delete"' in result.deleted_diff)
+        self.assertTrue('class="diff_insert"' in result.inserted_diff)
+        self.assertTrue('class="diff_insert"' in result.combined_diff and 'class="diff_delete"' in result.combined_diff)
+
+    def test_differ_with_both_string_and_file(self):
+        with tempfile.NamedTemporaryFile(delete=False) as tmp1:
+            tmp1.write(html_str)
+
+        result = HTMLDiffer(tmp1.name, html_different_str)
+
+        self.assertTrue('class="diff_delete"' in result.deleted_diff)
+        self.assertTrue('class="diff_insert"' in result.inserted_diff)
+        self.assertTrue('class="diff_insert"' in result.combined_diff and 'class="diff_delete"' in result.combined_diff)
 
     def test_script_str(self):
         """script tags should be ignored"""
-        out = text_diff(script_str, script_str_2)
+        result = HTMLDiffer(script_str, script_str_2)
 
-        self.assertEqual(out[0], script_str)
-        self.assertEqual(out[1], script_str_2)
+        self.assertEqual(result.deleted_diff, script_str)
+        self.assertEqual(result.inserted_diff, script_str_2)
 
-        out = text_diff(script_str_3, script_str_4)
-        self.assertFalse(out[0] == script_str_3)
-        self.assertFalse(out[1] == script_str_4)
+        result = HTMLDiffer(script_str_3, script_str_4)
+        self.assertFalse(result.deleted_diff == script_str_3)
+        self.assertFalse(result.inserted_diff == script_str_4)
 
-        self.assertTrue("diff_delete" in out[0])
-        self.assertTrue("diff_insert" in out[1])
+        self.assertTrue("diff_delete" in result.deleted_diff)
+        self.assertTrue("diff_insert" in result.inserted_diff)
 
 
 def main():
