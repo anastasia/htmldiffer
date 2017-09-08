@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="htmldiffer",
-    version="0.24",
+    version="0.25",
     author="Anastasia Aizman",
     author_email="anastasia.aizman@gmail.com",
     description=("HTML diff"),
