@@ -1,4 +1,4 @@
-## htmldiff
+## htmldiffer
 [![Build Status](https://travis-ci.org/anastasia/htmldiff.svg?branch=develop)](https://travis-ci.org/anastasia/htmldiff)
 #### highlight the differences between two html files
 #
@@ -9,13 +9,13 @@ pip install htmldiffer
 
 Or
 ```
-$ git clone git@github.com:anastasia/htmldiff.git
-$ cd htmldiff
+$ git clone git@github.com:anastasia/htmldiffer.git
+$ cd htmldiffer
 ```
 
 Get three html diffs: deleted diff, inserted diff, and a combined diff (showing both the deleted and inserted highlights)
 ```python
-from htmldiff import diff
+from htmldiffer import diff
 
 d = diff.HTMLDiffer(str_a, str_b)
 # get a string of the HTML with deleted elements highlighted:  
@@ -36,7 +36,7 @@ HTMLDiffer will take strings or files.
 
 ### How does this work?
 
-htmldiff takes a string or a file of html, converts it to string entities[1], then diffs those entities using [SequenceMatcher][seqmatch] 
+htmldiffer takes a string or a file of html, converts it to string entities[1], then diffs those entities using [SequenceMatcher][seqmatch] 
 and gets deleted, inserted, and combined (deleted and inserted) html, which include spans wrapping the changed text.
      
 Example:
@@ -67,11 +67,11 @@ In order to maintain the integrity and structure of the original HTML, we don't 
 
 ### Tell me more
 
-+ htmldiff's `diff` method [diff.py][diffpy] 
++ htmldiffer's `diff` method [diff.py][diffpy] 
 `html2list` method which iterates through 
 the html string and spits out a list of entities (see above for explanation). 
 
-[diffpy]:https://github.com/anastasia/htmldiff/blob/develop/htmldiff/diff.py
+[diffpy]:https://github.com/anastasia/htmldiffer/htmldiffer/diff.py
 + `diff` adds a style string (default lives in settings.py) to the `<head>` of the html (if head tag exists) 
 so that our diff highlights show up
 + `diff` compares the two newly created lists 
