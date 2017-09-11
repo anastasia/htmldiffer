@@ -1,5 +1,5 @@
 ## htmldiffer
-[![Build Status](https://travis-ci.org/anastasia/htmldiff.svg?branch=develop)](https://travis-ci.org/anastasia/htmldiff)
+[![Build Status](https://travis-ci.org/anastasia/htmldiffer.svg?branch=develop)](https://travis-ci.org/anastasia/htmldiff)
 #### highlight the differences between two html files
 #
 ### To install:
