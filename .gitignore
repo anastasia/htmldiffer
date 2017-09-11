@@ -1,4 +1,8 @@
+*.egg-info/
+.installed.cfg
+*.egg
 *.pyc
 assets/*
 .idea
-htmldiffer.egg-info
+build/
+dist/
