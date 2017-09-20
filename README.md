@@ -19,11 +19,11 @@ from htmldiffer import diff
 
 d = diff.HTMLDiffer(str_a, str_b)
 # get a string of the HTML with deleted elements highlighted:  
-print d.deleted_diff
+print(d.deleted_diff)
 # get a string of the HTML with inserted elements highlighted:
-print d.inserted_diff
+print(d.inserted_diff)
 # get a string of the HTML with both deleted and inserted elements highlighted:
-print d.combined_diff
+print(d.combined_diff)
 ```
 That's it! 
 
