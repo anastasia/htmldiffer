@@ -1,6 +1,7 @@
 import os
 import difflib
-from utils import *
+from .utils import html2list, add_style_str, is_tag
+from .settings import STYLE_STR, EXCLUDE_STRINGS_A, EXCLUDE_STRINGS_B, WHITELISTED_TAGS, ADD_STYLE
 
 
 class HTMLDiffer:
@@ -22,8 +23,8 @@ class HTMLDiffer:
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
         a, b = html2list(self.html_a), html2list(self.html_b)
-        if settings.ADD_STYLE:
-            a, b = add_style_str(a, custom_style_str=settings.STYLE_STR), add_style_str(b, custom_style_str=settings.STYLE_STR)
+        if ADD_STYLE:
+            a, b = add_style_str(a, custom_style_str=STYLE_STR), add_style_str(b, custom_style_str=STYLE_STR)
 
         out = [[], [], []]
 
@@ -61,11 +62,11 @@ def diff_tag(diff_type, text):
 def no_changes_exist(old_el, new_el):
     old_el_str = ''.join(old_el)
     new_el_str = ''.join(new_el)
-    if len(settings.EXCLUDE_STRINGS_A):
-        for s in settings.EXCLUDE_STRINGS_A:
+    if len(EXCLUDE_STRINGS_A):
+        for s in EXCLUDE_STRINGS_A:
             old_el_str = ''.join(old_el_str.split(s))
-    if len(settings.EXCLUDE_STRINGS_A):
-        for s in settings.EXCLUDE_STRINGS_B:
+    if len(EXCLUDE_STRINGS_A):
+        for s in EXCLUDE_STRINGS_B:
             new_el_str = ''.join(new_el_str.split(s))
 
     return old_el_str == new_el_str
@@ -92,7 +93,7 @@ def wrap_text(diff_type, text_list):
         el = text_list[idx]
 
         if is_tag(el) or el.isspace() or el == '':
-            for tag in settings.WHITELISTED_TAGS:
+            for tag in WHITELISTED_TAGS:
                 if tag in el:
                     outcome.append(diff_tag(diff_type, el))
                     whitelisted = True

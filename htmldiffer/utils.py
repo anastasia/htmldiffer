@@ -1,4 +1,4 @@
-import settings
+from .settings import *
 
 
 def html2list(html_string):
@@ -12,7 +12,7 @@ def html2list(html_string):
         result == ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>']
 
     Blacklisted tag example:
-        settings.BLACKLISTED_TAGS = ['head']
+        BLACKLISTED_TAGS = ['head']
         html_str = "<head><title>Page Title</title></head>"
         result = html2list(html_str)
         result == ['<head><title>Page Title</title></head>']
@@ -47,7 +47,7 @@ def html2list(html_string):
 
     for x in out:
         if not blacklisted_tag:
-            for tag in settings.BLACKLISTED_TAGS:
+            for tag in BLACKLISTED_TAGS:
                 if verified_blacklisted_tag(x, tag):
                     blacklisted_tag = tag
                     blacklisted_string += x
@@ -77,7 +77,7 @@ def verified_blacklisted_tag(x, tag):
 
 
 def add_style_str(html_list, custom_style_str=None):
-    style_str = custom_style_str if custom_style_str else settings.STYLE_STR
+    style_str = custom_style_str if custom_style_str else STYLE_STR
 
     for idx,el in enumerate(html_list):
         if "</head>" in el:
@@ -107,7 +107,7 @@ def is_ignorable(text):
 
 
 def is_whitelisted_tag(x):
-    for tag in settings.WHITELISTED_TAGS:
+    for tag in WHITELISTED_TAGS:
         if "<%s" % tag in x:
             return True
     return False
