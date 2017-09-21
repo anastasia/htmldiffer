@@ -1,7 +1,7 @@
 import unittest
 from .fixtures import *
 from htmldiffer.utils import *
-
+from htmldiffer import settings
 
 class TestUtilMethods(unittest.TestCase):
     def test_html2diff(self):
