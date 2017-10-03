@@ -131,6 +131,11 @@ def is_tag(x):
     return x[0] == "<" and x[-1] == ">"
 
 
+def is_self_closing_tag(x):
+    if not len(x):
+        return False
+    return x[0] == "<" and x[-2:] == "/>"
+
 def is_text(x):
     return ("<" and ">") not in x
 
