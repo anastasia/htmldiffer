@@ -88,6 +88,18 @@ def add_stylesheet(html_list):
     return html_list
 
 
+def extract_tagname(el):
+    if not is_tag(el):
+        raise Exception("Not a tag!")
+
+    tag_parts = el[el.index('<')+1:el.index('>')].replace("/", "")
+    return tag_parts.split(" ")[0]
+
+
+def is_blacklisted_tag(el):
+    tag = extract_tagname(el)
+    return tag in BLACKLISTED_TAGS
+
 
 
 def get_class_decorator(name, diff_type=''):
