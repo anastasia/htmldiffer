@@ -101,6 +101,58 @@ def is_blacklisted_tag(el):
     return tag in BLACKLISTED_TAGS
 
 
+def compare_tags(tag_a, tag_b):
+    """
+    returns markers for deleted, inserted, and combined
+    """
+    tag_parts_a = chart_tag(tag_a)
+    tag_parts_b = chart_tag(tag_b)
+    # first test whether we have any new attributes
+    deleted_attributes = set(tag_parts_a.keys()) - set(tag_parts_b.keys())
+    inserted_attributes = set(tag_parts_b.keys()) - set(tag_parts_a.keys())
+    # then look at every attribute set and check whether the values are the same
+    changed_attributes = list()
+    for attribute in set(tag_parts_a.keys()) & set(tag_parts_b.keys()):
+        if tag_parts_a[attribute] != tag_parts_b[attribute]:
+            changed_attributes.append(attribute)
+
+    return {
+        'deleted_attributes': list(deleted_attributes),
+        'inserted_attributes': list(inserted_attributes),
+        'changed_attributes': changed_attributes,
+    }
+
+
+def chart_tag(tag_string):
+    """
+    Takes tag and returns dict that charts out tag parts
+    example:
+        tag = '<div title="somewhere">'
+        parts = chart_tag(tag)
+        print(parts)
+        # {'tag': 'div', 'title': 'somewhere'}
+    """
+    tag_parts = dict()
+    if tag_string[0] != "<" and tag_string[-1] != ">":
+        raise Exception("Got malformed tag", tag_string)
+    t = tag_string.split(" ")
+    for el in t:
+        if el[0] == "<":
+            # grab the tag type
+            tag_parts['tag'] = el[1:]
+        else:
+            check_element = el[:-1] if el[-1] == ">" else el
+            check_element = check_element.replace('"', '').replace('/', '')
+            if len(check_element.split("=")) > 1:
+                attribute, values = check_element.split("=")
+                tag_parts[attribute] = values
+            else:
+                # if unattached elements, these are probably extra values from
+                # the previous attribute, so we add them
+                tag_parts[attribute] += ' ' + check_element
+            if el[-1] == ">":
+                return tag_parts
+
 
 def get_class_decorator(name, diff_type=''):
     """returns class like `htmldiffer-tag-change`"""
