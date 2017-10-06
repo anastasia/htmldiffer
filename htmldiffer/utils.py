@@ -76,13 +76,13 @@ def verified_blacklisted_tag(x, tag):
     return initial == (blacklisted_head + " ") or initial == (blacklisted_head + ">")
 
 
-def add_style_str(html_list, custom_style_str=None):
-    style_str = custom_style_str if custom_style_str else STYLE_STR
-
+def add_stylesheet(html_list):
+    stylesheet_tag = '<link rel="stylesheet" type="text/css" href="{}">'.format(STYLESHEET)
     for idx,el in enumerate(html_list):
         if "</head>" in el:
+            # add at the very end of head tag cause we is important
             head = el.split("</head>")
-            new_head = head[0] + style_str + "</head>" + "".join(head[1:])
+            new_head = head[0] + stylesheet_tag + "</head>" + "".join(head[1:])
             html_list[idx] = new_head
 
     return html_list

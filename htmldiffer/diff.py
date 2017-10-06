@@ -24,7 +24,7 @@ class HTMLDiffer:
 
         a, b = html2list(self.html_a), html2list(self.html_b)
         if settings.ADD_STYLE:
-            a, b = add_style_str(a, custom_style_str=settings.STYLE_STR), add_style_str(b, custom_style_str=settings.STYLE_STR)
+            a, b = add_stylesheet(a), add_stylesheet(b)
 
         out = [[], [], []]
 

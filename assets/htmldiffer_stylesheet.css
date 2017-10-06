@@ -1,0 +1,7 @@
+span.htmldiffer_insert {
+    background-color: #a0ffa0;
+}
+
+span.htmldiffer_delete {
+    background-color: #FF5D2D;
+}
