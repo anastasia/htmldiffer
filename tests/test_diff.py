@@ -28,7 +28,7 @@ class TestDiffMethods(unittest.TestCase):
         #                               'd is for dongle </span></a>'.format(tag_change_class_insert, insert_class))
 
     def test_add_stylesheet(self):
-        """Test adding style string and custom style string to <head> of the html stirng"""
+        """Test adding style string and custom style string to <head> of the html string"""
         html_list = html2list(html_str)
         new_html_list = add_stylesheet(html_list)
         self.assertNotEqual(new_html_list[1], '</head>')

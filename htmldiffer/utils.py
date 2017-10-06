@@ -17,30 +17,51 @@ def html2list(html_string):
         result = html2list(html_str)
         result == ['<head><title>Page Title</title></head>']
     """
-    mode = 'char'
+    # different modes for parsing
+    CHAR, TAG = 'char', 'tag'
+
+    mode = CHAR
     cur = ''
     out = []
 
+    # TODO: use generators
+    # iterate through the string, character by character
     for c in html_string:
-        if mode == 'tag':
+
+        # tags must be checked first to close tags
+        if mode == TAG:
+
+            # add character to current element
             cur += c
+
+            # if we see the end of the tag
             if c == '>':
-                out.append(cur)
-                cur = ''
-                mode = 'char'
-        elif mode == 'char':
+                out.append(cur)  # add the current element to the output
+                cur = ''         # reset the character
+                mode = CHAR      # set the mode back to character mode
+
+        elif mode == CHAR:
+
+            # when we are in CHAR mode and see an opening tag, we must switch
             if c == '<':
+
                 # clear out string collected so far
                 if cur != "":
-                    out.append(cur)
-                cur = c
-                mode = 'tag'
+                    out.append(cur)   # if we have already started a new element, store it
+                cur = c               # being our tag
+                mode = TAG            # swap to tag mode
+
+            # when we reach the next 'word', store and continue
+            # FIXME: use isspace() instead of c == ' ', here
             elif c == ' ':
-                out.append(cur+c)
+                out.append(cur+c)   # NOTE: we add spaces here so that we preserve structure
                 cur = ''
+
+            # otherwise, simply continue building up the current element
             else:
                 cur += c
 
+    # TODO: move this to its own function `merge_blacklisted` or `merge_tags` return to a generator instead of list
     cleaned = list()
     blacklisted_tag = None
     blacklisted_string = ""
@@ -96,20 +117,17 @@ def extract_tagname(el):
     return tag_parts.split(" ")[0]
 
 
-def is_blacklisted_tag(el):
-    tag = extract_tagname(el)
-    return tag in BLACKLISTED_TAGS
-
-
 def compare_tags(tag_a, tag_b):
     """
     returns markers for deleted, inserted, and combined
     """
     tag_parts_a = chart_tag(tag_a)
     tag_parts_b = chart_tag(tag_b)
+
     # first test whether we have any new attributes
     deleted_attributes = set(tag_parts_a.keys()) - set(tag_parts_b.keys())
     inserted_attributes = set(tag_parts_b.keys()) - set(tag_parts_a.keys())
+
     # then look at every attribute set and check whether the values are the same
     changed_attributes = list()
     for attribute in set(tag_parts_a.keys()) & set(tag_parts_b.keys()):
@@ -135,6 +153,7 @@ def chart_tag(tag_string):
     tag_parts = dict()
     if tag_string[0] != "<" and tag_string[-1] != ">":
         raise Exception("Got malformed tag", tag_string)
+
     t = tag_string.split(" ")
     for el in t:
         if el[0] == "<":
@@ -143,6 +162,7 @@ def chart_tag(tag_string):
         else:
             check_element = el[:-1] if el[-1] == ">" else el
             check_element = check_element.replace('"', '').replace('/', '')
+
             if len(check_element.split("=")) > 1:
                 attribute, values = check_element.split("=")
                 tag_parts[attribute] = values
@@ -162,41 +182,42 @@ def get_class_decorator(name, diff_type=''):
         return "%s" % (HTMLDIFFER_CLASS_STRINGS[name])
 
 
+# ===============================
+# Predicate functions
+# ===============================
+# Note: These make assumptions about consuming valid html text. Validations should happen before these internal
+# predicate functions are used -- these are not currently used for parsing.
+
+def is_blacklisted_tag(el):
+    tag = extract_tagname(el)
+    return tag in BLACKLISTED_TAGS
+
+
 def is_comment(text):
-    if "<!--" in text:
-        return True
-    return False
+    return "<!--" in text
 
 
 def is_ignorable(text):
-    if is_comment(text) or is_closing_tag(text) or text.isspace():
-        return True
-    return False
+    return is_comment(text) or is_closing_tag(text) or text.isspace()
 
 
 def is_whitelisted_tag(x):
-    for tag in WHITELISTED_TAGS:
-        if "<%s" % tag in x:
-            return True
-    return False
+    def in_x(tag):
+        return "<%s" % tag in x
+
+    return any(in_x, WHITELISTED_TAGS)
 
 
 def is_open_script_tag(x):
-    if "<script " in x:
-        return True
-    return False
+    return "<script " in x
 
 
 def is_closed_script_tag(x):
-    if "</script " in x:
-        return True
-    return False
+    return "<\script" in x
 
 
 def is_tag(x):
-    if not len(x):
-        return False
-    return x[0] == "<" and x[-1] == ">"
+    return len(x) > 0 and x[0] == "<" and x[-1] == ">"
 
 
 def is_opening_tag(x):
@@ -208,13 +229,11 @@ def is_closing_tag(x):
 
 
 def is_self_closing_tag(x):
-    if not len(x):
-        return False
-    return x[0] == "<" and x[-2:] == "/>"
+    return len(x) > 0 and x[0] == "<" and x[-2:] == "/>"
 
 
 def is_text(x):
-    return ("<" and ">") not in x
+    return ("<" not in x) and (">" not in x)
 
 
 def is_div(x):

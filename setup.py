@@ -6,15 +6,15 @@ setup(
     author="Anastasia Aizman",
     author_email="anastasia.aizman@gmail.com",
     description=("HTML diff"),
-    license="BSD",
+    license="BSD3",
     keywords="html diff",
     url="https://github.com/anastasia/htmldiffer",
     packages=['htmldiffer', 'tests'],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: BSD3 License",
     ],
-    python_requires='>=2.7'
+    python_requires='>=2.7' # compatible?
 )
 
