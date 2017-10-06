@@ -11,3 +11,15 @@ TAG_CHANGE_PREFIX = "diff_tag_"
 TEXT_CHANGE_PREFIX = "diff_"
 
 STYLESHEET = "../assets/htmldiffer_stylesheet.css"
+
+STRING_PREFIX = "htmldiffer"
+
+HTMLDIFFER_CLASS_STRINGS = {
+    'change': "%s" % STRING_PREFIX,
+    'tag_change': "%s-tag-change" % STRING_PREFIX,
+    'attribute_change': "%s-attribute-change" % STRING_PREFIX,
+    'class_change': "%s-class-change" % STRING_PREFIX,
+    'id_change': "%s-id-change" % STRING_PREFIX,
+    'text_insert': "%s-insert" % STRING_PREFIX,
+    'text_delete': "%s-delete" % STRING_PREFIX,
+}

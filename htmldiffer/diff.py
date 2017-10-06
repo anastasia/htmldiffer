@@ -1,7 +1,7 @@
 import os
 import difflib
 from . import settings
-from .utils import html2list, add_style_str, is_tag, is_self_closing_tag
+from .utils import *
 
 
 class HTMLDiffer:
@@ -42,8 +42,9 @@ class HTMLDiffer:
             elif e[0] == "replace":
                 deletion = wrap_text("delete", old_el)
                 insertion = wrap_text("insert", new_el)
-                # appending only insert
-                append_text(out, deleted=deletion, inserted=insertion, both=insertion)
+                both = wrap_text("change", new_el)
+                # both = combined_wrap(''.join(old_el), ''.join(new_el))
+                append_text(out, deleted=deletion, inserted=insertion, both=both)
             elif e[0] == "delete":
                 deletion = wrap_text("delete", old_el)
                 append_text(out, deleted=deletion, inserted=None, both=deletion)
@@ -111,17 +112,18 @@ def wrap_text(diff_type, text_list):
         return joined
 
     while idx < len(text_list):
-        whitelisted = False
         el = text_list[idx]
 
-        if is_tag(el) or el.isspace() or el == '':
-            for tag in settings.WHITELISTED_TAGS:
-                if tag in el:
-                    outcome.append(add_diff_tag(diff_type, el))
-                    whitelisted = True
-                    break
-            if not whitelisted:
+        if is_tag(el):
+            tag = extract_tagname(el)
+            if is_whitelisted_tag(tag):
+                outcome.append(add_diff_tag(diff_type, el))
+            else:
+                # insert diff class into tag
                 outcome.append(add_diff_class(diff_type, el))
+        elif el.isspace() or el == '':
+            # don't mark as changed
+            outcome.append(el)
         else:
             outcome.append(add_diff_tag(diff_type, el))
         idx += 1

@@ -88,14 +88,18 @@ def add_stylesheet(html_list):
     return html_list
 
 
+
+
+def get_class_decorator(name, diff_type=''):
+    """returns class like `htmldiffer-tag-change`"""
+    if diff_type:
+        return "%s_%s" % (HTMLDIFFER_CLASS_STRINGS[name], diff_type)
+    else:
+        return "%s" % (HTMLDIFFER_CLASS_STRINGS[name])
+
+
 def is_comment(text):
     if "<!--" in text:
-        return True
-    return False
-
-
-def is_closing_tag(text):
-    if '</' in text:
         return True
     return False
 
@@ -120,7 +124,7 @@ def is_open_script_tag(x):
 
 
 def is_closed_script_tag(x):
-    if "<\script " in x:
+    if "</script " in x:
         return True
     return False
 
@@ -131,10 +135,19 @@ def is_tag(x):
     return x[0] == "<" and x[-1] == ">"
 
 
+def is_opening_tag(x):
+    return x[0] == "<" and x[1] != "/"
+
+
+def is_closing_tag(x):
+    return x[0:2] == "</"
+
+
 def is_self_closing_tag(x):
     if not len(x):
         return False
     return x[0] == "<" and x[-2:] == "/>"
+
 
 def is_text(x):
     return ("<" and ">") not in x
