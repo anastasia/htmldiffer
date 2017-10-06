@@ -2,7 +2,6 @@
 .installed.cfg
 *.egg
 *.pyc
-assets/*
 .idea
 build/
 dist/
