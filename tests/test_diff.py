@@ -17,7 +17,7 @@ class TestDiffMethods(unittest.TestCase):
     def test_wrap_text(self):
         list_to_wrap = ['<a>', 'b', 'c ', '</a>']
         wrapped_str = wrap_text('insert', list_to_wrap)
-        self.assertEqual(wrapped_str, '<a  class="{0}"><span class="{1}">b</span><span class="{1}">c </span></a>'.format(tag_change_class_insert, insert_class))
+        self.assertEqual(wrapped_str, '<a class="{0}"><span class="{1}">b</span><span class="{1}">c </span></a>'.format(tag_change_class_insert, insert_class))
 
         list_to_wrap = ['<a>', 'b is for boy', '<div>', 'c is for cat',
                         '</div>', 'd is for dongle ', '</a>']

@@ -58,13 +58,16 @@ class HTMLDiffer:
 
 
 def add_diff_tag(diff_type, text):
-    return '<span class="diff_%s">%s</span>' % (diff_type, text)
+    diff_class = get_class_decorator("change", diff_type)
+    return '<span class="%s">%s</span>' % (diff_class, text)
 
 
 def add_diff_class(diff_type, original_tag):
     # if closing tag like </div> return out immediately
     if is_closing_tag(original_tag):
         return original_tag
+
+    diff_class = get_class_decorator("tag_change", diff_type)
 
     if len(original_tag.split("class=")) > 1:
         # determine if single or double quote
@@ -77,12 +80,12 @@ def add_diff_class(diff_type, original_tag):
         beginning_of_content = tag_parts[0]
         class_content = contents[1]
         end_of_content = ''.join(contents[2:])
-        new_tag = beginning_of_content + ' class="' + class_content + ' ' + settings.TAG_CHANGE_PREFIX + diff_type + '"' + end_of_content
+        new_tag = beginning_of_content + ' class="' + class_content + ' ' + diff_class + '"' + end_of_content
     else:
         if is_self_closing_tag(original_tag):
-            new_tag = original_tag[:-2] + ' class="%s%s"' % (settings.TAG_CHANGE_PREFIX, diff_type) + "/>"
+            new_tag = original_tag[:-2] + ' class="%s"' % diff_class + "/>"
         else:
-            new_tag = original_tag[:-1] + ' class="%s%s"' % (settings.TAG_CHANGE_PREFIX, diff_type) + ">"
+            new_tag = original_tag[:-1] + ' class="%s"' % diff_class + ">"
     return new_tag
 
 
@@ -124,7 +127,10 @@ def wrap_text(diff_type, text_list):
                 outcome.append(add_diff_tag(diff_type, el))
             else:
                 # insert diff class into tag
-                outcome.append(add_diff_class(diff_type, el))
+                if is_blacklisted_tag(tag):
+                    outcome.append(el)
+                else:
+                    outcome.append(add_diff_class(diff_type, el))
         elif el.isspace() or el == '':
             # don't mark as changed
             outcome.append(el)

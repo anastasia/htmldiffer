@@ -188,8 +188,7 @@ def get_class_decorator(name, diff_type=''):
 # Note: These make assumptions about consuming valid html text. Validations should happen before these internal
 # predicate functions are used -- these are not currently used for parsing.
 
-def is_blacklisted_tag(el):
-    tag = extract_tagname(el)
+def is_blacklisted_tag(tag):
     return tag in BLACKLISTED_TAGS
 
 
