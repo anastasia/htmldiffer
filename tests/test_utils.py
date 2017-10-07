@@ -16,13 +16,12 @@ class TestUtilMethods(unittest.TestCase):
         self.assertEqual(result, ['<head><title>Page Title</title></head>'])
 
     def test_is_whitelisted_tag(self):
-        self.assertTrue(is_whitelisted_tag(img_tag))
-        self.assertFalse(is_whitelisted_tag(div_tag))
-        self.assertFalse(is_whitelisted_tag(span_tag))
-
-        settings.WHITELISTED_TAGS.append('span')
-        self.assertTrue(is_whitelisted_tag(span_tag))
-        settings.WHITELISTED_TAGS.pop()
+        img_tagname = extract_tagname(img_tag)
+        self.assertTrue(is_whitelisted_tag(img_tagname))
+        div_tagname = extract_tagname(div_tag)
+        self.assertFalse(is_whitelisted_tag(div_tagname))
+        span_tagname = extract_tagname(span_tag)
+        self.assertFalse(is_whitelisted_tag(span_tagname))
 
     def test_chart_tag(self):
         tag_string = '<div title="elsewhere">'
