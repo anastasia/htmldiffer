@@ -99,7 +99,7 @@ def verified_blacklisted_tag(x, tag):
 
 def add_stylesheet(html_list):
     stylesheet_tag = '<link rel="stylesheet" type="text/css" href="{}">'.format(STYLESHEET)
-    for idx,el in enumerate(html_list):
+    for idx, el in enumerate(html_list):
         if "</head>" in el:
             # add at the very end of head tag cause we is important
             head = el.split("</head>")
@@ -201,11 +201,9 @@ def is_ignorable(text):
     return is_comment(text) or is_closing_tag(text) or text.isspace()
 
 
-def is_whitelisted_tag(x):
-    def in_x(tag):
-        return "<%s" % tag in x
-
-    return any(in_x, WHITELISTED_TAGS)
+def is_whitelisted_tag(tag):
+    # takes a tag and checks against WHITELISTED
+    return tag in WHITELISTED_TAGS
 
 
 def is_open_script_tag(x):
