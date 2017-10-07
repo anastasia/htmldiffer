@@ -1,10 +1,9 @@
-import os
+import subprocess
 import unittest
 import tempfile
 from htmldiffer.diff import *
-from htmldiffer import settings
 from htmldiffer import utils
-from .fixtures import *
+from tests.fixtures import *
 
 tag_change_class = utils.get_class_decorator("tag_change")
 tag_change_class_insert = utils.get_class_decorator("tag_change", "insert")
@@ -102,7 +101,9 @@ class TestDiffMethods(unittest.TestCase):
 
             tmp2.write(html_different_str.encode())
 
-        os.system("python htmldiffer {0} {1}".format(tmp1.name, tmp2.name))
+        result = subprocess.check_output(["python", "-m", "htmldiffer", tmp1.name, tmp2.name]).split('</html>')
+        self.assertTrue(len(result[-1]) == 3)
+        self.assertTrue(tag_change_class_insert in result[1])
 
 
 def main():
