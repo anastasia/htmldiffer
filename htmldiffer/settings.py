@@ -1,3 +1,4 @@
+# use yaml and look in "~/.config/htmldiffer/settings.yaml" or make it? also where you can put "~/.config/htmldiffer/styles.css"
 IGNORE_HEAD_CHANGES = True
 ADD_STYLE = True
 CUSTOM_STYLE_STR = ""

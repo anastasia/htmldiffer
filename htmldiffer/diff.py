@@ -62,14 +62,18 @@ def add_diff_tag(diff_type, text):
 
 
 def add_diff_class(diff_type, original_tag):
+    # if closing tag like </div> return out immediately
+    if is_closing_tag(original_tag):
+        return original_tag
+
     if len(original_tag.split("class=")) > 1:
-        """determine if single or double quote"""
+        # determine if single or double quote
         tag_parts = original_tag.split("class=")
         if tag_parts[1][0] == '"':
             contents = tag_parts[1].split('"')
-        elif tag_parts[1][0] == "'":
-            contents = tag_parts[1].split('"')
-        # class_content = ['', 'class strings go here',]
+        else:
+            # assuming presence of quotes, for now
+            contents = tag_parts[1].split("'")
         beginning_of_content = tag_parts[0]
         class_content = contents[1]
         end_of_content = ''.join(contents[2:])
