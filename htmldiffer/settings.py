@@ -11,7 +11,7 @@ EXCLUDE_STRINGS_B = []
 TAG_CHANGE_PREFIX = "diff_tag_"
 TEXT_CHANGE_PREFIX = "diff_"
 
-STYLESHEET = "../assets/htmldiffer_stylesheet.css"
+STYLESHEET = "assets/htmldiffer_stylesheet.css"
 
 STRING_PREFIX = "htmldiffer"
 
