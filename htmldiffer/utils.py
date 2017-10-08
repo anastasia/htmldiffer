@@ -229,7 +229,7 @@ def is_opening_tag(x):
 
 def is_closing_tag(x):
     return x[0:2] == "</"
-
+-
 
 def is_self_closing_tag(x):
     tag = extract_tagname(x)
@@ -237,8 +237,4 @@ def is_self_closing_tag(x):
 
 
 def is_text(x):
-    return ("<" not in x) and (">" not in x)
-
-
-def is_div(x):
-    return x[0:4] == "<div" and x[-6:] == "</div>"
+    return not is_tag(x)

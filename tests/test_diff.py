@@ -100,6 +100,11 @@ class TestDiffMethods(unittest.TestCase):
         self.assertTrue(tag_change_class_insert in combined_diff)
         self.assertTrue(tag_change_class_delete in combined_diff)
 
+    def test_append_text(self):
+        out = [[], [], []]
+        append_text(out, deleted="deleted", inserted="inserted", both="both")
+        self.assertEqual(out, [["deleted"], ["inserted"], ["both"]])
+
     def test_command_line(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
             tmp1.write(html_str.encode())

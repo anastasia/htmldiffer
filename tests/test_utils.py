@@ -65,6 +65,12 @@ class TestUtilMethods(unittest.TestCase):
         incomplete_tag = "<head class='some_class hey'>hey there<script>script_goes_here</script></head"
         self.assertFalse(is_complete_tag_block('head', incomplete_tag))
 
+    def test_is_text(self):
+        print("testing test_is_text")
+        self.assertTrue(is_text("hello!"))
+        self.assertTrue(is_text("hello>"))
+        self.assertFalse(is_text("<area>"))
+        self.assertFalse(is_text("<area class='some class'>hi"))
 
 def main():
     unittest.main()
