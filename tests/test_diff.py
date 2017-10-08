@@ -44,7 +44,9 @@ class TestDiffMethods(unittest.TestCase):
 
         self.assertTrue('class="{}"'.format(insert_class) in result.inserted_diff)
         self.assertTrue('class="{}"'.format(delete_class) in result.deleted_diff)
-        self.assertTrue('class="{}"'.format(combined_class) in result.combined_diff)
+
+        self.assertTrue('class="{}"'.format(insert_class) in result.combined_diff)
+        self.assertTrue('class="{}"'.format(delete_class) in result.combined_diff)
 
         self.assertFalse('class="{}"'.format(insert_class) in result.deleted_diff)
         self.assertFalse('class="{}"'.format(delete_class) in result.inserted_diff)
@@ -61,7 +63,10 @@ class TestDiffMethods(unittest.TestCase):
 
         self.assertTrue('class="{}"'.format(delete_class) in result.deleted_diff)
         self.assertTrue('class="{}"'.format(insert_class) in result.inserted_diff)
-        self.assertTrue('class="{}"'.format(combined_class) in result.combined_diff)
+
+        self.assertTrue('class="{}"'.format(delete_class) in result.combined_diff)
+        self.assertTrue('class="{}"'.format(insert_class) in result.combined_diff)
+
 
     def test_differ_with_both_string_and_file(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
@@ -71,7 +76,9 @@ class TestDiffMethods(unittest.TestCase):
 
         self.assertTrue('class="{}"'.format(delete_class) in result.deleted_diff)
         self.assertTrue('class="{}"'.format(insert_class) in result.inserted_diff)
-        self.assertTrue('class="{}"'.format(combined_class) in result.combined_diff)
+        # combined diff has both classes
+        self.assertTrue('class="{}"'.format(delete_class) in result.combined_diff)
+        self.assertTrue('class="{}"'.format(insert_class) in result.combined_diff)
 
     def test_script_str(self):
         """script tags should be ignored"""
@@ -92,6 +99,11 @@ class TestDiffMethods(unittest.TestCase):
         tag = "</script>"
         marked_up_tag = add_diff_class("delete", tag)
         self.assertEqual(marked_up_tag, tag)
+        # change that two classes (insert and delete)
+        # will be added to the combined diff
+        # in case of an attribute change
+        # combined_diff = HTMLDiffer(href_change, href_change_2)[2]
+        # self.assertEqual(combined_diff, '<a href="elsewhere" class="htmldiffer-tag-change_delete htmldiffer-tag-change_insert">Yeah</a>')
 
     def test_command_line(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
@@ -101,10 +113,10 @@ class TestDiffMethods(unittest.TestCase):
 
             tmp2.write(html_different_str.encode())
 
-        result = subprocess.check_output(["python", "-m", "htmldiffer", tmp1.name, tmp2.name]).split('</html>')
-        self.assertTrue(len(result[-1]) == 3)
-        self.assertTrue(tag_change_class_insert in result[1])
-
+        result = subprocess.check_output(["python", "-m", "htmldiffer", tmp1.name, tmp2.name])
+        diff_results = str(result).split('</html>')
+        self.assertTrue(len(diff_results[-1]) == 3)
+        self.assertTrue(tag_change_class_insert in diff_results[1])
 
 def main():
     unittest.main()

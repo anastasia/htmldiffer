@@ -1,4 +1,5 @@
 import os
+from bs4 import BeautifulSoup
 import difflib
 from . import settings
 from .utils import *
@@ -37,24 +38,34 @@ class HTMLDiffer:
         for e in s.get_opcodes():
             old_el = a[e[1]:e[2]]
             new_el = b[e[3]:e[4]]
+
             if e[0] == "equal" or no_changes_exist(old_el, new_el):
                 append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
+
             elif e[0] == "replace":
                 deletion = wrap_text("delete", old_el)
                 insertion = wrap_text("insert", new_el)
-                both = wrap_text("change", new_el)
-                # both = combined_wrap(''.join(old_el), ''.join(new_el))
-                append_text(out, deleted=deletion, inserted=insertion, both=both)
+                append_text(out, deleted=deletion, inserted=insertion, both=deletion + insertion)
+
             elif e[0] == "delete":
                 deletion = wrap_text("delete", old_el)
                 append_text(out, deleted=deletion, inserted=None, both=deletion)
+
             elif e[0] == "insert":
                 insertion = wrap_text("insert", new_el)
                 append_text(out, deleted=None, inserted=insertion, both=insertion)
+
             else:
                 raise "Um, something's broken. I didn't expect a '" + repr(e[0]) + "'."
 
-        return ''.join(out[0]), ''.join(out[1]), ''.join(out[2])
+        deleted_diff = ''.join(out[0])
+        inserted_diff = ''.join(out[1])
+
+        # using BeautifulSoup to fix any potentially broken tags
+        # see https://github.com/anastasia/htmldiffer/issues/28
+        combined_diff = str(BeautifulSoup(''.join(out[2]), 'html.parser'))
+
+        return deleted_diff, inserted_diff, combined_diff
 
 
 def add_diff_tag(diff_type, text):
@@ -139,3 +150,4 @@ def wrap_text(diff_type, text_list):
         idx += 1
 
     return ''.join(outcome)
+

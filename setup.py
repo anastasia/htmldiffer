@@ -10,11 +10,14 @@ setup(
     keywords="html diff",
     url="https://github.com/anastasia/htmldiffer",
     packages=['htmldiffer', 'tests'],
+    install_requires=[
+          'beautifulsoup4',
+      ],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
         "License :: OSI Approved :: BSD3 License",
     ],
-    python_requires='>=2.7' # compatible?
+    python_requires='>=2.7'
 )
 
