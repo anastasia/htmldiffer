@@ -5,7 +5,7 @@ from htmldiffer.diff import *
 from htmldiffer import utils
 from tests.fixtures import *
 
-tag_change_class = utils.get_class_decorator("tag_change")
+tag_change_class_delete = utils.get_class_decorator("tag_change", "delete")
 tag_change_class_insert = utils.get_class_decorator("tag_change", "insert")
 insert_class = utils.get_class_decorator("change", "insert")
 delete_class = utils.get_class_decorator("change", "delete")
@@ -102,8 +102,9 @@ class TestDiffMethods(unittest.TestCase):
         # change that two classes (insert and delete)
         # will be added to the combined diff
         # in case of an attribute change
-        # combined_diff = HTMLDiffer(href_change, href_change_2)[2]
-        # self.assertEqual(combined_diff, '<a href="elsewhere" class="htmldiffer-tag-change_delete htmldiffer-tag-change_insert">Yeah</a>')
+        combined_diff = HTMLDiffer(href_change, href_change_2).diff()[2]
+        self.assertTrue(tag_change_class_insert in combined_diff)
+        self.assertTrue(tag_change_class_delete in combined_diff)
 
     def test_command_line(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
