@@ -1,7 +1,8 @@
 import os
+from bs4 import BeautifulSoup
 import difflib
-from .utils import html2list, add_style_str, is_tag
-from .settings import STYLE_STR, EXCLUDE_STRINGS_A, EXCLUDE_STRINGS_B, WHITELISTED_TAGS, ADD_STYLE
+from . import settings
+from .utils import *
 
 
 class HTMLDiffer:
@@ -23,8 +24,8 @@ class HTMLDiffer:
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
         a, b = html2list(self.html_a), html2list(self.html_b)
-        if ADD_STYLE:
-            a, b = add_style_str(a, custom_style_str=STYLE_STR), add_style_str(b, custom_style_str=STYLE_STR)
+        if settings.ADD_STYLE:
+            a, b = add_stylesheet(a), add_stylesheet(b)
 
         out = [[], [], []]
 
@@ -37,36 +38,76 @@ class HTMLDiffer:
         for e in s.get_opcodes():
             old_el = a[e[1]:e[2]]
             new_el = b[e[3]:e[4]]
+
             if e[0] == "equal" or no_changes_exist(old_el, new_el):
                 append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
+
             elif e[0] == "replace":
                 deletion = wrap_text("delete", old_el)
                 insertion = wrap_text("insert", new_el)
                 append_text(out, deleted=deletion, inserted=insertion, both=deletion + insertion)
+
             elif e[0] == "delete":
                 deletion = wrap_text("delete", old_el)
                 append_text(out, deleted=deletion, inserted=None, both=deletion)
+
             elif e[0] == "insert":
                 insertion = wrap_text("insert", new_el)
                 append_text(out, deleted=None, inserted=insertion, both=insertion)
+
             else:
                 raise "Um, something's broken. I didn't expect a '" + repr(e[0]) + "'."
 
-        return ''.join(out[0]), ''.join(out[1]), ''.join(out[2])
+        deleted_diff = ''.join(out[0])
+        inserted_diff = ''.join(out[1])
+
+        # using BeautifulSoup to fix any potentially broken tags
+        # see https://github.com/anastasia/htmldiffer/issues/28
+        combined_diff = str(BeautifulSoup(''.join(out[2]), 'html.parser'))
+
+        return deleted_diff, inserted_diff, combined_diff
 
 
-def diff_tag(diff_type, text):
-    return '<span class="diff_%s">%s</span>' % (diff_type, text)
+def add_diff_tag(diff_type, text):
+    diff_class = get_class_decorator("change", diff_type)
+    return '<span class="%s">%s</span>' % (diff_class, text)
+
+
+def add_diff_class(diff_type, original_tag):
+    # if closing tag like </div> return out immediately
+    if is_closing_tag(original_tag):
+        return original_tag
+
+    diff_class = get_class_decorator("tag_change", diff_type)
+
+    if len(original_tag.split("class=")) > 1:
+        # determine if single or double quote
+        tag_parts = original_tag.split("class=")
+        if tag_parts[1][0] == '"':
+            contents = tag_parts[1].split('"')
+        else:
+            # assuming presence of quotes, for now
+            contents = tag_parts[1].split("'")
+        beginning_of_content = tag_parts[0]
+        class_content = contents[1]
+        end_of_content = ''.join(contents[2:])
+        new_tag = beginning_of_content + ' class="' + class_content + ' ' + diff_class + '"' + end_of_content
+    else:
+        if is_self_closing_tag(original_tag):
+            new_tag = original_tag[:-2] + ' class="%s"' % diff_class + "/>"
+        else:
+            new_tag = original_tag[:-1] + ' class="%s"' % diff_class + ">"
+    return new_tag
 
 
 def no_changes_exist(old_el, new_el):
     old_el_str = ''.join(old_el)
     new_el_str = ''.join(new_el)
-    if len(EXCLUDE_STRINGS_A):
-        for s in EXCLUDE_STRINGS_A:
+    if len(settings.EXCLUDE_STRINGS_A):
+        for s in settings.EXCLUDE_STRINGS_A:
             old_el_str = ''.join(old_el_str.split(s))
-    if len(EXCLUDE_STRINGS_A):
-        for s in EXCLUDE_STRINGS_B:
+    if len(settings.EXCLUDE_STRINGS_A):
+        for s in settings.EXCLUDE_STRINGS_B:
             new_el_str = ''.join(new_el_str.split(s))
 
     return old_el_str == new_el_str
@@ -89,19 +130,24 @@ def wrap_text(diff_type, text_list):
         return joined
 
     while idx < len(text_list):
-        whitelisted = False
         el = text_list[idx]
 
-        if is_tag(el) or el.isspace() or el == '':
-            for tag in WHITELISTED_TAGS:
-                if tag in el:
-                    outcome.append(diff_tag(diff_type, el))
-                    whitelisted = True
-                    break
-            if not whitelisted:
-                outcome.append(el)
+        if is_tag(el):
+            tag = extract_tagname(el)
+            if is_whitelisted_tag(tag):
+                outcome.append(add_diff_tag(diff_type, el))
+            else:
+                # insert diff class into tag
+                if is_blacklisted_tag(tag):
+                    outcome.append(el)
+                else:
+                    outcome.append(add_diff_class(diff_type, el))
+        elif el.isspace() or el == '':
+            # don't mark as changed
+            outcome.append(el)
         else:
-            outcome.append(diff_tag(diff_type, el))
+            outcome.append(add_diff_tag(diff_type, el))
         idx += 1
 
     return ''.join(outcome)
+

@@ -1,0 +1,30 @@
+span.htmldiffer_insert {
+    background-color: #a0ffa0;
+}
+
+span.htmldiffer_delete {
+    background-color: #FF5D2D;
+}
+
+span.htmldiffer_insert > input,
+span.htmldiffer_insert > img {
+    outline: #a0ffa0 solid thick;
+}
+
+span.htmldiffer_delete > input,
+span.htmldiffer_delete > img {
+    outline: #FF5D2D solid thick;
+}
+
+.htmldiffer-tag-change_delete {
+    color: #8d2d0d;
+    text-decoration: underline;
+}
+.htmldiffer-tag-change_insert {
+    color: #239572;
+    text-decoration: underline;
+}
+
+span.htmldiffer_change {
+    background-color: #5095ff;
+}

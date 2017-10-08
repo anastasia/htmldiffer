@@ -1,6 +1,7 @@
 import sys
-import diff
+from htmldiffer import diff
 
+# check out https://docs.python.org/3/library/cmd.html#cmd.Cmd
 try:
     a, b = sys.argv[1:3]
 except ValueError:
