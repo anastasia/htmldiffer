@@ -54,6 +54,17 @@ class TestUtilMethods(unittest.TestCase):
         tag_name = extract_tagname(script_str)
         self.assertEqual(tag_name, 'script')
 
+    def test_is_complete_tag_block(self):
+        self.assertTrue(is_complete_tag_block('script', script_str))
+        self.assertTrue(is_complete_tag_block('div', div_tag))
+        self.assertTrue(is_complete_tag_block('span', span_tag))
+        self.assertTrue(is_complete_tag_block('img', img_tag))
+
+        incomplete_tag = "<head class='some_class hey'>hey there</head"
+        self.assertFalse(is_complete_tag_block('head', incomplete_tag))
+        incomplete_tag = "<head class='some_class hey'>hey there<script>script_goes_here</script></head"
+        self.assertFalse(is_complete_tag_block('head', incomplete_tag))
+
 
 def main():
     unittest.main()

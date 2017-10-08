@@ -96,7 +96,7 @@ def is_complete_tag_block(tag, html_str):
     spaceless_html_str = html_str.replace(" ", "")
     start_tag_is_present = spaceless_html_str[:len(tag)+1] == "<%s" % tag
     if tag in self_closing_tags:
-        return start_tag_is_present and html_str[:2] == "/>"
+        return start_tag_is_present and html_str[-1] == ">"
     else:
         end_tag_is_present = spaceless_html_str[-1 * (len(tag) + 3):] == "</%s>" % tag
         return start_tag_is_present and end_tag_is_present
