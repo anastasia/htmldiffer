@@ -16,7 +16,7 @@ $ python -m htmldiffer file_one.html file_two.html
 
 HTMLDiffer will take strings or files and return three html diffs: deleted diff, inserted diff, and a combined diff (showing both the deleted and inserted highlights). To use this in a library:
 HTMLDiffer will 
-+ surround any text-level changes with `<span class="htmldiffer-[insert|delete]>`
++ surround any text-level changes with `<span class="htmldiffer_[insert|delete]>`
 + insert htmldiffer classes (`class="htmldiffer-tag-change_[insert|delete]`) into any tag-level changes (that is, if a tagname has changed, or any attribute inside a tag has changed) 
 
 ```python
