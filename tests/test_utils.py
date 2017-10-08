@@ -5,14 +5,16 @@ from htmldiffer import settings
 
 
 class TestUtilMethods(unittest.TestCase):
-    def test_html2diff(self):
+    def test_tokenize_html(self):
         html_str = "<h1>This is a simple header</h1>"
-        result = html2list(html_str)
+        result = list(tokenize_html(html_str))
         self.assertEqual(result, ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>'])
+        self.assertEqual(''.join(result), html_str)
 
+        # test blacklisted
         settings.BLACKLISTED_TAGS = ['head']
         html_str = "<head><title>Page Title</title></head>"
-        result = html2list(html_str)
+        result = list(tokenize_html(html_str))
         self.assertEqual(result, ['<head><title>Page Title</title></head>'])
 
     def test_is_whitelisted_tag(self):
@@ -51,6 +53,7 @@ class TestUtilMethods(unittest.TestCase):
 
         tag_name = extract_tagname(script_str)
         self.assertEqual(tag_name, 'script')
+
 
 def main():
     unittest.main()

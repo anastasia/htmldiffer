@@ -1,100 +1,105 @@
 from .settings import *
+from .rules import *
 
 
-def html2list(html_string):
+def tokenize_html(html_string):
     """
-    :param html_string: any ol' html string you've got
-    :return: list of elements, making sure not to break up open tags (even if they contain attributes)
-    Note that any blacklisted tag will not be broken up
+    takes any ol' html string you've got
+    and returns a generator of elements, making sure not to break up open tags (even if they contain attributes)
+
     Example:
         html_str = "<h1>This is a simple header</h1>"
-        result = html2list(html_str)
-        result == ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>']
+        result = tokenize_html(html_str)
+        list(result)
+        ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>']
 
-    Blacklisted tag example:
+    if html_str includes any BLACKLISTED tags, tokenize_html keeps those tags closed
+
+    Example:
         BLACKLISTED_TAGS = ['head']
         html_str = "<head><title>Page Title</title></head>"
-        result = html2list(html_str)
-        result == ['<head><title>Page Title</title></head>']
+        result = list(tokenize_html(html_str))
+        result
+        # ['<head><title>Page Title</title></head>']
     """
     # different modes for parsing
-    CHAR, TAG = 'char', 'tag'
+    CHAR, TAG, BLACKLISTED = 'char', 'tag', 'blacklisted'
 
     mode = CHAR
-    cur = ''
-    out = []
+    current_el = ''
+    blacklisted_tag = None
 
-    # TODO: use generators
     # iterate through the string, character by character
-    for c in html_string:
-
+    for char in html_string:
         # tags must be checked first to close tags
         if mode == TAG:
-
             # add character to current element
-            cur += c
+            current_el += char
 
             # if we see the end of the tag
-            if c == '>':
-                out.append(cur)  # add the current element to the output
-                cur = ''         # reset the character
-                mode = CHAR      # set the mode back to character mode
+            if char == '>':
+                # check element is blacklisted tag
+                try:
+                    tagname = extract_tagname(current_el)
+                    if is_blacklisted_tag(tagname):
+                        mode = BLACKLISTED
+                        blacklisted_tag = tagname
+                    else:
+                        mode = CHAR
+                        yield current_el
+                        current_el = ''
+
+                except ValueError as e:
+                    yield current_el
+                    current_el = ''         # reset the character
+                    mode = CHAR      # set the mode back to character mode
 
         elif mode == CHAR:
+            # when we are in CHAR mode and see an opening tag
+            # switch to TAG mode
+            if char == '<':
+                if current_el != "":
+                    yield current_el # clear out string collected so far
 
-            # when we are in CHAR mode and see an opening tag, we must switch
-            if c == '<':
-
-                # clear out string collected so far
-                if cur != "":
-                    out.append(cur)   # if we have already started a new element, store it
-                cur = c               # being our tag
-                mode = TAG            # swap to tag mode
+                current_el = char
+                mode = TAG        # swap to tag mode
 
             # when we reach the next 'word', store and continue
-            # FIXME: use isspace() instead of c == ' ', here
-            elif c == ' ':
-                out.append(cur+c)   # NOTE: we add spaces here so that we preserve structure
-                cur = ''
+            elif char.isspace():
+                current_el += char
+                # out.append(cur+c)   # NOTE: we add spaces here so that we preserve structure
+                yield current_el
+                current_el = ''
 
             # otherwise, simply continue building up the current element
             else:
-                cur += c
-
-    # TODO: move this to its own function `merge_blacklisted` or `merge_tags` return to a generator instead of list
-    cleaned = list()
-    blacklisted_tag = None
-    blacklisted_string = ""
-
-    for x in out:
-        if not blacklisted_tag:
-            for tag in BLACKLISTED_TAGS:
-                if verified_blacklisted_tag(x, tag):
-                    blacklisted_tag = tag
-                    blacklisted_string += x
-                    break
-            if not blacklisted_tag:
-                cleaned.append(x)
-        else:
-            if x == "</{0}>".format(blacklisted_tag):
-                blacklisted_string += x
-                cleaned.append(blacklisted_string)
+                current_el += char
+        elif mode == BLACKLISTED:
+            # check if closing blacklisted tag
+            current_el += char
+            if is_complete_tag_block(blacklisted_tag, current_el):
+                # we're done with the blacklisted tag
+                # yield current_el and return everything to normal
+                yield current_el
+                current_el = ''
+                mode = CHAR
                 blacklisted_tag = None
-                blacklisted_string = ""
-            else:
-                blacklisted_string += x
-
-    return cleaned
 
 
-def verified_blacklisted_tag(x, tag):
+def is_complete_tag_block(tag, html_str):
     """
-    check for '<' + blacklisted_tag +  ' ' or '>'
-    as in: <head> or <head ...> (should not match <header if checking for <head)
+    takes a tag and an html_str and returns whether or not the
+    string contains in it the complete closed tag
     """
-    initial = x[0:len(tag) + 1 + 1]
-    blacklisted_head = "<{0}".format(tag)
-    return initial == (blacklisted_head + " ") or initial == (blacklisted_head + ">")
+    # remove all the spaces because valid HTML can have extra spaces inside
+    # opening and closing tags, like <input />
+    spaceless_html_str = html_str.replace(" ", "")
+    start_tag_is_present = spaceless_html_str[:len(tag)+1] == "<%s" % tag
+    if tag in self_closing_tags:
+        return start_tag_is_present and html_str[:2] == "/>"
+    else:
+        end_tag_is_present = spaceless_html_str[-1 * (len(tag) + 3):] == "</%s>" % tag
+        return start_tag_is_present and end_tag_is_present
 
 
 def add_stylesheet(html_list):
@@ -111,7 +116,7 @@ def add_stylesheet(html_list):
 
 def extract_tagname(el):
     if not is_tag(el):
-        raise Exception("Not a tag!")
+        raise ValueError("Not a tag!")
 
     tag_parts = el[el.index('<')+1:el.index('>')].replace("/", "")
     return tag_parts.split(" ")[0]
@@ -188,6 +193,7 @@ def get_class_decorator(name, diff_type=''):
 # Note: These make assumptions about consuming valid html text. Validations should happen before these internal
 # predicate functions are used -- these are not currently used for parsing.
 
+
 def is_blacklisted_tag(tag):
     return tag in BLACKLISTED_TAGS
 
@@ -226,7 +232,8 @@ def is_closing_tag(x):
 
 
 def is_self_closing_tag(x):
-    return len(x) > 0 and x[0] == "<" and x[-2:] == "/>"
+    tag = extract_tagname(x)
+    return tag in self_closing_tags
 
 
 def is_text(x):

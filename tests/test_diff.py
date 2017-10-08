@@ -28,7 +28,7 @@ class TestDiffMethods(unittest.TestCase):
 
     def test_add_stylesheet(self):
         """Test adding style string and custom style string to <head> of the html string"""
-        html_list = html2list(html_str)
+        html_list = list(tokenize_html(html_str))
         new_html_list = add_stylesheet(html_list)
         self.assertNotEqual(new_html_list[1], '</head>')
         new_html_string = "".join(new_html_list)
@@ -38,9 +38,9 @@ class TestDiffMethods(unittest.TestCase):
     def test_differ_with_strings(self):
         result = HTMLDiffer(html_str, html_different_str)
 
-        self.assertEqual(result.deleted_diff[-7:], '</html>')
-        self.assertEqual(result.inserted_diff[-7:], '</html>')
-        self.assertEqual(result.combined_diff[-7:], '</html>')
+        self.assertEqual(result.deleted_diff.strip()[-7:], '</html>')
+        self.assertEqual(result.inserted_diff.strip()[-7:], '</html>')
+        self.assertEqual(result.combined_diff.strip()[-7:], '</html>')
 
         self.assertTrue('class="{}"'.format(insert_class) in result.inserted_diff)
         self.assertTrue('class="{}"'.format(delete_class) in result.deleted_diff)
@@ -66,7 +66,6 @@ class TestDiffMethods(unittest.TestCase):
 
         self.assertTrue('class="{}"'.format(delete_class) in result.combined_diff)
         self.assertTrue('class="{}"'.format(insert_class) in result.combined_diff)
-
 
     def test_differ_with_both_string_and_file(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
@@ -118,6 +117,7 @@ class TestDiffMethods(unittest.TestCase):
         diff_results = str(result).split('</html>')
         self.assertTrue(len(diff_results[-1]) == 3)
         self.assertTrue(tag_change_class_insert in diff_results[1])
+
 
 def main():
     unittest.main()

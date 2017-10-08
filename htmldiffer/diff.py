@@ -23,11 +23,15 @@ class HTMLDiffer:
     def diff(self):
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-        a, b = html2list(self.html_a), html2list(self.html_b)
-        if settings.ADD_STYLE:
+        a_list, b_list = tokenize_html(self.html_a), tokenize_html(self.html_b)
+        # turn generators into lists
+        a = list(a_list)
+        b = list(b_list)
+
+        if ADD_STYLE:
             a, b = add_stylesheet(a), add_stylesheet(b)
 
-        out = [[], [], []]
+        out = [list(), list(), list()]
 
         try:
             # autojunk can cause malformed HTML, but also speeds up processing.
@@ -64,7 +68,6 @@ class HTMLDiffer:
         # using BeautifulSoup to fix any potentially broken tags
         # see https://github.com/anastasia/htmldiffer/issues/28
         combined_diff = str(BeautifulSoup(''.join(out[2]), 'html.parser'))
-
         return deleted_diff, inserted_diff, combined_diff
 
 
