@@ -20,11 +20,6 @@ class TestDiffMethods(unittest.TestCase):
 
         list_to_wrap = ['<a>', 'b is for boy', '<div>', 'c is for cat',
                         '</div>', 'd is for dongle ', '</a>']
-        wrapped_str = wrap_text('insert', list_to_wrap)
-        # self.assertEqual(wrapped_str, '<a  class="{0}"><span class="{1}">'\
-        #                               'b is for boy</span><div><span class="{1}">'\
-        #                               'c is for cat</span></div><span class="{1}">'\
-        #                               'd is for dongle </span></a>'.format(tag_change_class_insert, insert_class))
 
     def test_add_stylesheet(self):
         """Test adding style string and custom style string to <head> of the html string"""
@@ -114,8 +109,8 @@ class TestDiffMethods(unittest.TestCase):
             tmp2.write(html_different_str.encode())
 
         result = subprocess.check_output(["python", "-m", "htmldiffer", tmp1.name, tmp2.name])
-        diff_results = str(result).split('</html>')
-        self.assertTrue(len(diff_results[-1]) == 3)
+        diff_results = (result).decode("utf-8").split('</html>')
+        self.assertTrue(len(diff_results[:-1]) == 3)  # last entry in diff_results is spaces or empty str
         self.assertTrue(tag_change_class_insert in diff_results[1])
 
 
