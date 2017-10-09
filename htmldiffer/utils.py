@@ -229,7 +229,7 @@ def is_opening_tag(x):
 
 def is_closing_tag(x):
     return x[0:2] == "</"
--
+
 
 def is_self_closing_tag(x):
     tag = extract_tagname(x)
