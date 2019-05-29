@@ -75,7 +75,7 @@ In order to maintain the integrity and structure of the original HTML, we don't 
 ### Tell me more
 
 + htmldiffer's `diff` method [diff.py][diffpy]
-`html2list` method which iterates through the html string and spits out a list of entities (see above for explanation).
+`tokenize_html` method which iterates through the html string and spits out a list of entities (see above for explanation).
 
 [diffpy]:https://github.com/anastasia/htmldiffer/htmldiffer/diff.py
 

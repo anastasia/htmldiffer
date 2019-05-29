@@ -13,6 +13,7 @@ setup(
     install_requires=[
           'beautifulsoup4',
       ],
+    test_suite='tests',
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Topic :: Utilities",

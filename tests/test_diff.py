@@ -20,15 +20,10 @@ class TestDiffMethods(unittest.TestCase):
 
         list_to_wrap = ['<a>', 'b is for boy', '<div>', 'c is for cat',
                         '</div>', 'd is for dongle ', '</a>']
-        wrapped_str = wrap_text('insert', list_to_wrap)
-        # self.assertEqual(wrapped_str, '<a  class="{0}"><span class="{1}">'\
-        #                               'b is for boy</span><div><span class="{1}">'\
-        #                               'c is for cat</span></div><span class="{1}">'\
-        #                               'd is for dongle </span></a>'.format(tag_change_class_insert, insert_class))
 
     def test_add_stylesheet(self):
         """Test adding style string and custom style string to <head> of the html string"""
-        html_list = html2list(html_str)
+        html_list = list(tokenize_html(html_str))
         new_html_list = add_stylesheet(html_list)
         self.assertNotEqual(new_html_list[1], '</head>')
         new_html_string = "".join(new_html_list)
@@ -38,9 +33,9 @@ class TestDiffMethods(unittest.TestCase):
     def test_differ_with_strings(self):
         result = HTMLDiffer(html_str, html_different_str)
 
-        self.assertEqual(result.deleted_diff[-7:], '</html>')
-        self.assertEqual(result.inserted_diff[-7:], '</html>')
-        self.assertEqual(result.combined_diff[-7:], '</html>')
+        self.assertEqual(result.deleted_diff.strip()[-7:], '</html>')
+        self.assertEqual(result.inserted_diff.strip()[-7:], '</html>')
+        self.assertEqual(result.combined_diff.strip()[-7:], '</html>')
 
         self.assertTrue('class="{}"'.format(insert_class) in result.inserted_diff)
         self.assertTrue('class="{}"'.format(delete_class) in result.deleted_diff)
@@ -66,7 +61,6 @@ class TestDiffMethods(unittest.TestCase):
 
         self.assertTrue('class="{}"'.format(delete_class) in result.combined_diff)
         self.assertTrue('class="{}"'.format(insert_class) in result.combined_diff)
-
 
     def test_differ_with_both_string_and_file(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
@@ -106,6 +100,11 @@ class TestDiffMethods(unittest.TestCase):
         self.assertTrue(tag_change_class_insert in combined_diff)
         self.assertTrue(tag_change_class_delete in combined_diff)
 
+    def test_append_text(self):
+        out = [[], [], []]
+        append_text(out, deleted="deleted", inserted="inserted", both="both")
+        self.assertEqual(out, [["deleted"], ["inserted"], ["both"]])
+
     def test_command_line(self):
         with tempfile.NamedTemporaryFile(delete=False) as tmp1:
             tmp1.write(html_str.encode())
@@ -115,9 +114,10 @@ class TestDiffMethods(unittest.TestCase):
             tmp2.write(html_different_str.encode())
 
         result = subprocess.check_output(["python", "-m", "htmldiffer", tmp1.name, tmp2.name])
-        diff_results = str(result).split('</html>')
-        self.assertTrue(len(diff_results[-1]) == 3)
+        diff_results = (result).decode("utf-8").split('</html>')
+        self.assertTrue(len(diff_results[:-1]) == 3)  # last entry in diff_results is spaces or empty str
         self.assertTrue(tag_change_class_insert in diff_results[1])
+
 
 def main():
     unittest.main()
