@@ -6,21 +6,21 @@ from .utils import *
 
 
 class HTMLDiffer:
-    def __init__(self, html_a, html_b):
+    def __init__(self, html_a, html_b, encoding=None, autojunk=False):
         if os.path.isfile(html_a):
-            with open(html_a, "r") as file_a:
+            with open(html_a, "r", encoding=encoding) as file_a:
                 self.html_a = file_a.read()
         else:
             self.html_a = html_a
         if os.path.isfile(html_b):
-            with open(html_b, "r") as file_b:
+            with open(html_b, "r", encoding=encoding) as file_b:
                 self.html_b = file_b.read()
         else:
             self.html_b = html_b
 
-        self.deleted_diff, self.inserted_diff, self.combined_diff = self.diff()
+        self.deleted_diff, self.inserted_diff, self.combined_diff = self.diff(autojunk=autojunk)
 
-    def diff(self):
+    def diff(self, autojunk=False):
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
         a, b = html2list(self.html_a), html2list(self.html_b)
@@ -31,7 +31,7 @@ class HTMLDiffer:
 
         try:
             # autojunk can cause malformed HTML, but also speeds up processing.
-            s = difflib.SequenceMatcher(None, a, b, autojunk=False)
+            s = difflib.SequenceMatcher(None, a, b, autojunk=autojunk)
         except TypeError:
             s = difflib.SequenceMatcher(None, a, b)
 
