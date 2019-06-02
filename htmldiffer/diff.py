@@ -7,12 +7,18 @@ from .utils import *
 
 class HTMLDiffer:
     def __init__(self, html_a, html_b, encoding=None, autojunk=False):
-        if os.path.isfile(html_a):
+        if isinstance(html_a, BeautifulSoup):
+            self.html_a = html_a.prettify()
+        
+        elif os.path.isfile(html_a):
             with open(html_a, "r", encoding=encoding) as file_a:
                 self.html_a = file_a.read()
         else:
             self.html_a = html_a
-        if os.path.isfile(html_b):
+        if isinstance(html_b, BeautifulSoup):
+            self.html_b = html_b.prettify()
+        
+        elif os.path.isfile(html_b):
             with open(html_b, "r", encoding=encoding) as file_b:
                 self.html_b = file_b.read()
         else:
