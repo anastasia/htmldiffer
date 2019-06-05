@@ -6,7 +6,7 @@ from .utils import *
 
 
 class HTMLDiffer:
-    def __init__(self, html_a, html_b, encoding=None, autojunk=False):
+    def __init__(self, html_a, html_b, diff_level='word', encoding=None, autojunk=False):
         if isinstance(html_a, BeautifulSoup):
             self.html_a = html_a.prettify()
         
@@ -24,12 +24,13 @@ class HTMLDiffer:
         else:
             self.html_b = html_b
 
-        self.deleted_diff, self.inserted_diff, self.combined_diff = self.diff(autojunk=autojunk)
+        self.deleted_diff, self.inserted_diff, self.combined_diff = self.diff(diff_level=diff_level, 
+                                                                              autojunk=autojunk)
 
-    def diff(self, autojunk=False):
+    def diff(self, diff_level='word', autojunk=False):
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-        a, b = html2list(self.html_a), html2list(self.html_b)
+        a, b = html2list(self.html_a, level=diff_level), html2list(self.html_b, level=diff_level)
         if settings.ADD_STYLE:
             a, b = add_stylesheet(a), add_stylesheet(b)
 
