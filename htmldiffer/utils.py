@@ -52,12 +52,6 @@ def html2list(html_string):
                     out.append(cur)   # if we have already started a new element, store it
                 cur = c               # being our tag
                 mode = TAG            # swap to tag mode
-
-            # when we reach the next 'word', store and continue
-            # FIXME: use isspace() instead of c == ' ', here
-#            elif c == ' ':
-#                out.append(cur+c)   # NOTE: we add spaces here so that we preserve structure
-#                cur = ''
             
             # if c is a special character, store 'word', store c, continue
             elif is_special_character(c):
