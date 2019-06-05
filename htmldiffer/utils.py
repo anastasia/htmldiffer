@@ -1,3 +1,5 @@
+import re
+
 from .settings import *
 
 
@@ -50,13 +52,13 @@ def html2list(html_string):
                     out.append(cur)   # if we have already started a new element, store it
                 cur = c               # being our tag
                 mode = TAG            # swap to tag mode
-
-            # when we reach the next 'word', store and continue
-            # FIXME: use isspace() instead of c == ' ', here
-            elif c == ' ':
-                out.append(cur+c)   # NOTE: we add spaces here so that we preserve structure
+            
+            # if c is a special character, store 'word', store c, continue
+            elif is_special_character(c):
+                out.append(cur)
+                out.append(c)
                 cur = ''
-
+            
             # otherwise, simply continue building up the current element
             else:
                 cur += c
@@ -235,3 +237,9 @@ def is_text(x):
 
 def is_div(x):
     return x[0:4] == "<div" and x[-6:] == "</div>"
+
+
+def is_special_character(string):
+    char_re = re.compile(r'[^a-zA-Z0-9]')
+    string = char_re.search(string)
+    return bool(string)
