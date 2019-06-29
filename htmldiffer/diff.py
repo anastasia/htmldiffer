@@ -24,7 +24,7 @@ class HTMLDiffer:
         else:
             self.html_b = html_b
 
-        self.deleted_diff, self.inserted_diff, self.combined_diff = self.diff(autojunk=autojunk)
+        self.deleted_diff, self.inserted_diff, self.combined_diff, self.s = self.diff(autojunk=autojunk)
 
     def diff(self, autojunk=False):
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
@@ -70,8 +70,11 @@ class HTMLDiffer:
         # using BeautifulSoup to fix any potentially broken tags
         # see https://github.com/anastasia/htmldiffer/issues/28
         combined_diff = str(BeautifulSoup(''.join(out[2]), 'html.parser'))
-
-        return deleted_diff, inserted_diff, combined_diff
+        
+        return deleted_diff, inserted_diff, combined_diff, s
+    
+    def ratio(self):
+        return self.s.ratio()
 
 
 def add_diff_tag(diff_type, text):
