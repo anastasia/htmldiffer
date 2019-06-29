@@ -3,9 +3,11 @@ import re
 from .settings import *
 
 
-def html2list(html_string):
+def html2list(html_string, level='word'):
     """
-    :param html_string: any ol' html string you've got
+    :param  html_string: any ol' html string you've got
+            level:  either 'word' or 'character'. If level='word', elements will be words.
+                    If level='character', elements will be individial characters.
     :return: list of elements, making sure not to break up open tags (even if they contain attributes)
     Note that any blacklisted tag will not be broken up
     Example:
@@ -61,7 +63,12 @@ def html2list(html_string):
             
             # otherwise, simply continue building up the current element
             else:
-                cur += c
+                if level == 'word':
+                    cur += c
+                elif level == 'character':
+                    out.append(c)
+                else:
+                    raise ValueError('level must be "word" or "character"')
 
     # TODO: move this to its own function `merge_blacklisted` or `merge_tags` return to a generator instead of list
     cleaned = list()
