@@ -100,6 +100,8 @@ def html2list(html_string, level='word'):
 
 
 def check_html(html, encoding=None):
+    from copy import deepcopy
+    html = deepcopy(html)
     if isinstance(html, BeautifulSoup):
         html = html.prettify()    
     elif os.path.isfile(html):
