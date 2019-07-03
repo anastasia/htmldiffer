@@ -6,19 +6,18 @@ from . import utils
 
 class HTMLDiffer:
     def __init__(self, html_a, html_b, diff_level='word', encoding=None, autojunk=False):
-        html_a = utils.check_html(html_a, encoding=encoding), 
-        html_b = utils.check_html(html_b, encoding=encoding)
+        self.html_a = utils.check_html(html_a, encoding=encoding) 
+        self.html_b = utils.check_html(html_b, encoding=encoding)
 
-        diff = self.diff(html_a, html_b,
-                         diff_level=diff_level, 
+        diff = self.diff(diff_level=diff_level, 
                          autojunk=autojunk)
         self.deleted_diff, self.inserted_diff, self.combined_diff = diff[0:3]
         self.s = diff[3]
         
-    def diff(self, html_a, html_b, diff_level='word', autojunk=False):
+    def diff(self, diff_level='word', autojunk=False):
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-        a, b = utils.html2list(html_a, level=diff_level), utils.html2list(html_b, level=diff_level)
+        a, b = utils.html2list(self.html_a, level=diff_level), utils.html2list(self.html_b, level=diff_level)
         if settings.ADD_STYLE:
             a, b = utils.add_stylesheet(a), utils.add_stylesheet(b)
         try:
