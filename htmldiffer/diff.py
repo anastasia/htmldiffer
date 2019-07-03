@@ -1,95 +1,85 @@
-import os
 from bs4 import BeautifulSoup
 import difflib
 from . import settings
-from .utils import *
+from . import utils
 
 
 class HTMLDiffer:
     def __init__(self, html_a, html_b, diff_level='word', encoding=None, autojunk=False):
-        if isinstance(html_a, BeautifulSoup):
-            self.html_a = html_a.prettify()
-        
-        elif os.path.isfile(html_a):
-            with open(html_a, "r", encoding=encoding) as file_a:
-                self.html_a = file_a.read()
-        else:
-            self.html_a = html_a
-        if isinstance(html_b, BeautifulSoup):
-            self.html_b = html_b.prettify()
-        
-        elif os.path.isfile(html_b):
-            with open(html_b, "r", encoding=encoding) as file_b:
-                self.html_b = file_b.read()
-        else:
-            self.html_b = html_b
+        html_a = utils.check_html(html_a, encoding=encoding), 
+        html_b = utils.check_html(html_b, encoding=encoding)
 
-        self.deleted_diff, self.inserted_diff, self.combined_diff, self.s = self.diff(html_a, html_b,
-                                                                                      diff_level=diff_level, 
-                                                                                      autojunk=autojunk)
+        diff = self.diff(html_a, html_b,
+                         diff_level=diff_level, 
+                         autojunk=autojunk)
+        self.deleted_diff, self.inserted_diff, self.combined_diff = diff[0:3]
+        self.s = diff[3]
         
     def diff(self, html_a, html_b, diff_level='word', autojunk=False):
         """Takes in strings a and b and returns HTML diffs: deletes, inserts, and combined."""
 
-        a, b = html2list(html_a, level=diff_level), html2list(html_b, level=diff_level)
+        a, b = utils.html2list(html_a, level=diff_level), utils.html2list(html_b, level=diff_level)
         if settings.ADD_STYLE:
-            a, b = add_stylesheet(a), add_stylesheet(b)
-
-        out = [[], [], []]
-
+            a, b = utils.add_stylesheet(a), utils.add_stylesheet(b)
         try:
             # autojunk can cause malformed HTML, but also speeds up processing.
             s = difflib.SequenceMatcher(None, a, b, autojunk=autojunk)
         except TypeError:
             s = difflib.SequenceMatcher(None, a, b)
-
-        for e in s.get_opcodes():
-            old_el = a[e[1]:e[2]]
-            new_el = b[e[3]:e[4]]
-
-            if e[0] == "equal" or no_changes_exist(old_el, new_el):
-                append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
-
-            elif e[0] == "replace":
-                deletion = wrap_text("delete", old_el)
-                insertion = wrap_text("insert", new_el)
-                append_text(out, deleted=deletion, inserted=insertion, both=deletion + insertion)
-
-            elif e[0] == "delete":
-                deletion = wrap_text("delete", old_el)
-                append_text(out, deleted=deletion, inserted=None, both=deletion)
-
-            elif e[0] == "insert":
-                insertion = wrap_text("insert", new_el)
-                append_text(out, deleted=None, inserted=insertion, both=insertion)
-
-            else:
-                raise "Um, something's broken. I didn't expect a '" + repr(e[0]) + "'."
-
-        deleted_diff = ''.join(out[0])
-        inserted_diff = ''.join(out[1])
-
-        # using BeautifulSoup to fix any potentially broken tags
-        # see https://github.com/anastasia/htmldiffer/issues/28
-        combined_diff = str(BeautifulSoup(''.join(out[2]), 'html.parser'))
+        
+        deleted_diff, inserted_diff, combined_diff = diff_from_sequence_matcher(s, a, b)
         
         return deleted_diff, inserted_diff, combined_diff, s
     
     def ratio(self):
         return self.s.ratio()
+
+
+def diff_from_sequence_matcher(s, a, b):
+    out = [[], [], []]
+    for e in s.get_opcodes():
+        old_el = a[e[1]:e[2]]
+        new_el = b[e[3]:e[4]]
+
+        if e[0] == "equal" or no_changes_exist(old_el, new_el):
+            append_text(out, deleted=''.join(old_el), inserted=''.join(new_el), both=''.join(new_el))
+
+        elif e[0] == "replace":
+            deletion = wrap_text("delete", old_el)
+            insertion = wrap_text("insert", new_el)
+            append_text(out, deleted=deletion, inserted=insertion, both=deletion + insertion)
+
+        elif e[0] == "delete":
+            deletion = wrap_text("delete", old_el)
+            append_text(out, deleted=deletion, inserted=None, both=deletion)
+
+        elif e[0] == "insert":
+            insertion = wrap_text("insert", new_el)
+            append_text(out, deleted=None, inserted=insertion, both=insertion)
+
+        else:
+            raise "Um, something's broken. I didn't expect a '" + repr(e[0]) + "'."
+
+    deleted_diff = ''.join(out[0])
+    inserted_diff = ''.join(out[1])
+
+    # using BeautifulSoup to fix any potentially broken tags
+    # see https://github.com/anastasia/htmldiffer/issues/28
+    combined_diff = str(BeautifulSoup(''.join(out[2]), 'html.parser'))
+    return deleted_diff, inserted_diff, combined_diff
     
 
 def add_diff_tag(diff_type, text):
-    diff_class = get_class_decorator("change", diff_type)
+    diff_class = utils.get_class_decorator("change", diff_type)
     return '<span class="%s">%s</span>' % (diff_class, text)
 
 
 def add_diff_class(diff_type, original_tag):
     # if closing tag like </div> return out immediately
-    if is_closing_tag(original_tag):
+    if utils.is_closing_tag(original_tag):
         return original_tag
 
-    diff_class = get_class_decorator("tag_change", diff_type)
+    diff_class = utils.get_class_decorator("tag_change", diff_type)
 
     if len(original_tag.split("class=")) > 1:
         # determine if single or double quote
@@ -104,7 +94,7 @@ def add_diff_class(diff_type, original_tag):
         end_of_content = ''.join(contents[2:])
         new_tag = beginning_of_content + ' class="' + class_content + ' ' + diff_class + '"' + end_of_content
     else:
-        if is_self_closing_tag(original_tag):
+        if utils.is_self_closing_tag(original_tag):
             new_tag = original_tag[:-2] + ' class="%s"' % diff_class + "/>"
         else:
             new_tag = original_tag[:-1] + ' class="%s"' % diff_class + ">"
@@ -134,7 +124,7 @@ def append_text(out, deleted=None, inserted=None, both=None):
 
 
 def wrap_text(diff_type, text_list):
-    idx, just_text, outcome = [0, '', []]
+    idx, outcome = 0, []
     joined = ''.join(text_list)
 
     if joined.isspace():
@@ -143,13 +133,13 @@ def wrap_text(diff_type, text_list):
     while idx < len(text_list):
         el = text_list[idx]
 
-        if is_tag(el):
-            tag = extract_tagname(el)
-            if is_whitelisted_tag(tag):
+        if utils.is_tag(el):
+            tag = utils.extract_tagname(el)
+            if utils.is_whitelisted_tag(tag):
                 outcome.append(add_diff_tag(diff_type, el))
             else:
                 # insert diff class into tag
-                if is_blacklisted_tag(tag):
+                if utils.is_blacklisted_tag(tag):
                     outcome.append(el)
                 else:
                     outcome.append(add_diff_class(diff_type, el))
