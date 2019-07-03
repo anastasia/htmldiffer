@@ -1,6 +1,9 @@
 import re
+import os
 
-from .settings import *
+from bs4 import BeautifulSoup
+
+from . import settings
 
 
 def html2list(html_string, level='word'):
@@ -77,7 +80,7 @@ def html2list(html_string, level='word'):
 
     for x in out:
         if not blacklisted_tag:
-            for tag in BLACKLISTED_TAGS:
+            for tag in settings.BLACKLISTED_TAGS:
                 if verified_blacklisted_tag(x, tag):
                     blacklisted_tag = tag
                     blacklisted_string += x
@@ -96,6 +99,17 @@ def html2list(html_string, level='word'):
     return cleaned
 
 
+def check_html(html, encoding=None):
+    if isinstance(html, BeautifulSoup):
+        html = html.prettify()    
+    elif os.path.isfile(html):
+        with open(html, "r", encoding=encoding) as file:
+            html = file.read()
+    else:
+        html = html
+    return html
+
+
 def verified_blacklisted_tag(x, tag):
     """
     check for '<' + blacklisted_tag +  ' ' or '>'
@@ -107,7 +121,7 @@ def verified_blacklisted_tag(x, tag):
 
 
 def add_stylesheet(html_list):
-    stylesheet_tag = '<link rel="stylesheet" type="text/css" href="{}">'.format(STYLESHEET)
+    stylesheet_tag = '<link rel="stylesheet" type="text/css" href="{}">'.format(settings.STYLESHEET)
     for idx, el in enumerate(html_list):
         if "</head>" in el:
             # add at the very end of head tag cause we is important
@@ -186,9 +200,9 @@ def chart_tag(tag_string):
 def get_class_decorator(name, diff_type=''):
     """returns class like `htmldiffer-tag-change`"""
     if diff_type:
-        return "%s_%s" % (HTMLDIFFER_CLASS_STRINGS[name], diff_type)
+        return "%s_%s" % (settings.HTMLDIFFER_CLASS_STRINGS[name], diff_type)
     else:
-        return "%s" % (HTMLDIFFER_CLASS_STRINGS[name])
+        return "%s" % (settings.HTMLDIFFER_CLASS_STRINGS[name])
 
 
 # ===============================
@@ -198,7 +212,7 @@ def get_class_decorator(name, diff_type=''):
 # predicate functions are used -- these are not currently used for parsing.
 
 def is_blacklisted_tag(tag):
-    return tag in BLACKLISTED_TAGS
+    return tag in settings.BLACKLISTED_TAGS
 
 
 def is_comment(text):
@@ -211,7 +225,7 @@ def is_ignorable(text):
 
 def is_whitelisted_tag(tag):
     # takes a tag and checks against WHITELISTED
-    return tag in WHITELISTED_TAGS
+    return tag in settings.WHITELISTED_TAGS
 
 
 def is_open_script_tag(x):
