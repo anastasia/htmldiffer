@@ -124,7 +124,7 @@ def append_text(out, deleted=None, inserted=None, both=None):
 
 
 def wrap_text(diff_type, text_list):
-    idx, outcome = 0, []
+    idx, just_text, outcome = [0, '', []]
     joined = ''.join(text_list)
 
     if joined.isspace():
