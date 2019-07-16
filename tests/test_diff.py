@@ -38,9 +38,9 @@ class TestDiffMethods(unittest.TestCase):
     def test_differ_with_strings(self):
         result = HTMLDiffer(html_str, html_different_str)
 
-        self.assertEqual(result.deleted_diff[-7:], '</html>')
-        self.assertEqual(result.inserted_diff[-7:], '</html>')
-        self.assertEqual(result.combined_diff[-7:], '</html>')
+        self.assertEqual(result.deleted_diff.strip()[-7:], '</html>')
+        self.assertEqual(result.inserted_diff.strip()[-7:], '</html>')
+        self.assertEqual(result.combined_diff.strip()[-7:], '</html>')
 
         self.assertTrue('class="{}"'.format(insert_class) in result.inserted_diff)
         self.assertTrue('class="{}"'.format(delete_class) in result.deleted_diff)
@@ -111,12 +111,11 @@ class TestDiffMethods(unittest.TestCase):
             tmp1.write(html_str.encode())
 
         with tempfile.NamedTemporaryFile(delete=False) as tmp2:
-
             tmp2.write(html_different_str.encode())
 
         result = subprocess.check_output(["python", "-m", "htmldiffer", tmp1.name, tmp2.name])
-        diff_results = str(result).split('</html>')
-        self.assertTrue(len(diff_results[-1]) == 3)
+        diff_results = str(result.decode()).split('</html>')
+        self.assertTrue(tag_change_class_delete in diff_results[0])
         self.assertTrue(tag_change_class_insert in diff_results[1])
 
 def main():

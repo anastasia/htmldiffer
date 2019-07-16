@@ -8,7 +8,7 @@ class TestUtilMethods(unittest.TestCase):
     def test_html2diff(self):
         html_str = "<h1>This is a simple header</h1>"
         result = html2list(html_str)
-        self.assertEqual(result, ['<h1>', 'This ', 'is ', 'a ', 'simple ', 'header', '</h1>'])
+        self.assertEqual(result, ['<h1>', 'This', ' ', 'is', ' ', 'a', ' ', 'simple', ' ', 'header', '</h1>'])
 
         settings.BLACKLISTED_TAGS = ['head']
         html_str = "<head><title>Page Title</title></head>"
