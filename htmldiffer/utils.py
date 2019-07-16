@@ -1,9 +1,16 @@
-from .settings import *
+import re
+import os
+
+from bs4 import BeautifulSoup
+
+from . import settings
 
 
-def html2list(html_string):
+def html2list(html_string, level='word'):
     """
-    :param html_string: any ol' html string you've got
+    :param  html_string: any ol' html string you've got
+            level:  either 'word' or 'character'. If level='word', elements will be words.
+                    If level='character', elements will be individial characters.
     :return: list of elements, making sure not to break up open tags (even if they contain attributes)
     Note that any blacklisted tag will not be broken up
     Example:
@@ -50,16 +57,21 @@ def html2list(html_string):
                     out.append(cur)   # if we have already started a new element, store it
                 cur = c               # being our tag
                 mode = TAG            # swap to tag mode
-
-            # when we reach the next 'word', store and continue
-            # FIXME: use isspace() instead of c == ' ', here
-            elif c == ' ':
-                out.append(cur+c)   # NOTE: we add spaces here so that we preserve structure
+            
+            # if c is a special character, store 'word', store c, continue
+            elif is_special_character(c):
+                out.append(cur)
+                out.append(c)
                 cur = ''
-
+            
             # otherwise, simply continue building up the current element
             else:
-                cur += c
+                if level == 'word':
+                    cur += c
+                elif level == 'character':
+                    out.append(c)
+                else:
+                    raise ValueError('level must be "word" or "character"')
 
     # TODO: move this to its own function `merge_blacklisted` or `merge_tags` return to a generator instead of list
     cleaned = list()
@@ -68,7 +80,7 @@ def html2list(html_string):
 
     for x in out:
         if not blacklisted_tag:
-            for tag in BLACKLISTED_TAGS:
+            for tag in settings.BLACKLISTED_TAGS:
                 if verified_blacklisted_tag(x, tag):
                     blacklisted_tag = tag
                     blacklisted_string += x
@@ -87,6 +99,17 @@ def html2list(html_string):
     return cleaned
 
 
+def check_html(html, encoding=None):
+    if isinstance(html, BeautifulSoup):
+        html = html.prettify()    
+    elif os.path.isfile(html):
+        with open(html, "r", encoding=encoding) as file:
+            html = file.read()
+    else:
+        html = html
+    return html
+
+
 def verified_blacklisted_tag(x, tag):
     """
     check for '<' + blacklisted_tag +  ' ' or '>'
@@ -98,7 +121,7 @@ def verified_blacklisted_tag(x, tag):
 
 
 def add_stylesheet(html_list):
-    stylesheet_tag = '<link rel="stylesheet" type="text/css" href="{}">'.format(STYLESHEET)
+    stylesheet_tag = '<link rel="stylesheet" type="text/css" href="{}">'.format(settings.STYLESHEET)
     for idx, el in enumerate(html_list):
         if "</head>" in el:
             # add at the very end of head tag cause we is important
@@ -177,9 +200,9 @@ def chart_tag(tag_string):
 def get_class_decorator(name, diff_type=''):
     """returns class like `htmldiffer-tag-change`"""
     if diff_type:
-        return "%s_%s" % (HTMLDIFFER_CLASS_STRINGS[name], diff_type)
+        return "%s_%s" % (settings.HTMLDIFFER_CLASS_STRINGS[name], diff_type)
     else:
-        return "%s" % (HTMLDIFFER_CLASS_STRINGS[name])
+        return "%s" % (settings.HTMLDIFFER_CLASS_STRINGS[name])
 
 
 # ===============================
@@ -189,7 +212,7 @@ def get_class_decorator(name, diff_type=''):
 # predicate functions are used -- these are not currently used for parsing.
 
 def is_blacklisted_tag(tag):
-    return tag in BLACKLISTED_TAGS
+    return tag in settings.BLACKLISTED_TAGS
 
 
 def is_comment(text):
@@ -202,7 +225,7 @@ def is_ignorable(text):
 
 def is_whitelisted_tag(tag):
     # takes a tag and checks against WHITELISTED
-    return tag in WHITELISTED_TAGS
+    return tag in settings.WHITELISTED_TAGS
 
 
 def is_open_script_tag(x):
@@ -235,3 +258,9 @@ def is_text(x):
 
 def is_div(x):
     return x[0:4] == "<div" and x[-6:] == "</div>"
+
+
+def is_special_character(string):
+    char_re = re.compile(r'[^a-zA-Z0-9]')
+    string = char_re.search(string)
+    return bool(string)
