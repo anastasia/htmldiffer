@@ -1,3 +1,5 @@
+## This is unmaintained. If you would like to maintain it, please DM me. 
+
 ## htmldiffer
 [![Build Status](https://travis-ci.org/anastasia/htmldiffer.svg?branch=develop)](https://travis-ci.org/anastasia/htmldiff)
 #### highlight the differences between two html files
