@@ -1,4 +1,4 @@
-## This is unmaintained. If you would like to maintain it, please DM me. 
+### This is unmaintained. If you would like to maintain it, please DM me with your thoughts about this project. 
 
 ## htmldiffer
 [![Build Status](https://travis-ci.org/anastasia/htmldiffer.svg?branch=develop)](https://travis-ci.org/anastasia/htmldiff)
